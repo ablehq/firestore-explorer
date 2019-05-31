@@ -1,6 +1,5 @@
 import { Movie, Link, Rating, Tag } from "./models";
-import { link } from "fs";
-import { type } from "os";
+import * as firebase from "@firebase/testing";
 
 export const localMovies = new Map<number, Movie>();
 export const localLinks = new Map<number, Array<Link>>();
@@ -45,3 +44,35 @@ export const loadLocalRatings = movieMapperGenerator(
   localRatingsJSON,
   localRatings
 );
+
+export const seedToFirebase = async (
+  firebaseApp: firebase.firestore.Firestore
+) => {
+  console.log("🏋️  Loading from local data/movies");
+  loadLocalMovies();
+  loadLocalLinks();
+  loadLocalTags();
+  loadLocalRatings();
+  console.log("⚡ Seeding movies to firebase");
+  //load movies
+  const moviesRef = firebaseApp.collection("movies");
+  let snapshot = await moviesRef.get();
+  console.log(`Current movies snapshot -- size now ${snapshot.size}`);
+  const movies = localMovies.values();
+  const promises = [];
+  for (const movie of movies) {
+    const movieId = `${movie.movieId}`;
+    promises.push(
+      moviesRef
+        .doc(movieId)
+        .set(movie)
+        .then(dat => {
+          console.log(`Processed movie id ${movieId}`);
+        })
+    );
+  }
+  await Promise.all(promises);
+  snapshot = await moviesRef.get();
+  console.log(`Completed seeding all movies -- size now ${snapshot.size}`);
+  console.log(`Completed seeding all movies`);
+};

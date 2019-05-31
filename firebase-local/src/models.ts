@@ -20,3 +20,8 @@ export interface Tag {
   tag: string;
   timestamp: number;
 }
+
+export interface FirebaseAuth {
+  uid: string;
+  name: string;
+}
