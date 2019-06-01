@@ -1,7 +1,7 @@
 import { Movie, Link, Rating, Tag } from "./models";
 import * as firebase from "@firebase/testing";
 export declare const localMovies: Map<number, Movie>;
-export declare const localLinks: Map<number, Link[]>;
+export declare const localLinks: Map<number, Link>;
 export declare const localTags: Map<number, Tag[]>;
 export declare const localRatings: Map<number, Rating[]>;
 export declare const localMoviesJSON: Array<Movie>;

@@ -1,0 +1,4 @@
+firestore-debug.log
+firebase-local/firestore-debug.log
+firebase-local/hs_err*
+firebase-local/replay*

@@ -2,7 +2,7 @@ import { Movie, Link, Rating, Tag } from "./models";
 import * as firebase from "@firebase/testing";
 
 export const localMovies = new Map<number, Movie>();
-export const localLinks = new Map<number, Array<Link>>();
+export const localLinks = new Map<number, Link>();
 export const localTags = new Map<number, Array<Tag>>();
 export const localRatings = new Map<number, Array<Rating>>();
 
@@ -15,15 +15,26 @@ export const localRatingsJSON: Array<
   Rating
 > = require("../data/movies/ratings.json");
 
-export const loadLocalMovies = () => {
-  localMoviesJSON.forEach(item => {
-    localMovies.set(item.movieId, item);
-  });
-};
+type MovieID = Movie | Link | Rating | Tag;
 
-type MovieID = Link | Rating | Tag;
+
 
 const movieMapperGenerator = (
+  dataJSON: Array<MovieID>,
+  dataMap: Map<number, MovieID>
+) => {
+  return () => {
+    dataJSON.forEach(item => {
+      dataMap.set(item.movieId, item);
+    });
+  };
+};
+
+export const loadLocalMovies = movieMapperGenerator(localMoviesJSON, localMovies)
+export const loadLocalLinks = movieMapperGenerator(localLinksJSON, localLinks);
+
+
+const movieArrayMapperGenerator = (
   dataJSON: Array<MovieID>,
   dataMap: Map<number, Array<MovieID>>
 ) => {
@@ -38,41 +49,83 @@ const movieMapperGenerator = (
   };
 };
 
-export const loadLocalLinks = movieMapperGenerator(localLinksJSON, localLinks);
-export const loadLocalTags = movieMapperGenerator(localTagsJSON, localTags);
-export const loadLocalRatings = movieMapperGenerator(
+export const loadLocalTags = movieArrayMapperGenerator(localTagsJSON, localTags);
+export const loadLocalRatings = movieArrayMapperGenerator(
   localRatingsJSON,
   localRatings
 );
+
+const batchifyArray = <T>(items: Array<T>, batchSize: number): Array<Array<T>> => {
+  const pages = items.length / batchSize + 1
+  const batches: Array<Array<T>> = []
+  for (let index = 0; index < pages; index++) {
+    const pageStart = index * batchSize
+    let pageEnd = pageStart + batchSize
+    if (pageEnd > items.length) {
+      pageEnd = items.length
+    }
+    batches.push(items.slice(pageStart, pageEnd))
+  }
+  return batches
+}
 
 export const seedToFirebase = async (
   firebaseApp: firebase.firestore.Firestore
 ) => {
   console.log("🏋️  Loading from local data/movies");
-  loadLocalMovies();
-  loadLocalLinks();
-  loadLocalTags();
-  loadLocalRatings();
+  loadLocalMovies()
+  loadLocalLinks()
+  loadLocalTags()
+  loadLocalRatings()
+  const batchSize = 500
+  const batchedMovies = batchifyArray(localMoviesJSON, batchSize)
   console.log("⚡ Seeding movies to firebase");
-  //load movies
   const moviesRef = firebaseApp.collection("movies");
   let snapshot = await moviesRef.get();
-  console.log(`Current movies snapshot -- size now ${snapshot.size}`);
-  const movies = localMovies.values();
-  const promises = [];
-  for (const movie of movies) {
-    const movieId = `${movie.movieId}`;
-    promises.push(
-      moviesRef
-        .doc(movieId)
-        .set(movie)
-        .then(dat => {
-          console.log(`Processed movie id ${movieId}`);
-        })
-    );
+  for (const [index, movieBatch] of batchedMovies.entries()) {
+    const batchWriter = firebaseApp.batch()
+    snapshot = await moviesRef.get();
+    console.log(`Current movies snapshot -- size now ${snapshot.size}`);
+    for (const movie of movieBatch) {
+      const movieId = `${movie.movieId}`;
+      const movieRef = moviesRef.doc(movieId)
+      let movieWithLink: Movie & ({
+        link: Link
+      } | {}) = {
+        ...movie,
+      }
+      const link = localLinks.get(movie.movieId)
+      if (link) {
+        movieWithLink = {
+          ...movieWithLink,
+          link: {
+            ...link
+          }
+        }
+      }
+      batchWriter.set(movieRef, movie)
+    }
+    await batchWriter.commit()
+    console.log(`Completed wiriting batch of size ${movieBatch.length} at index ${index}`);
   }
-  await Promise.all(promises);
   snapshot = await moviesRef.get();
   console.log(`Completed seeding all movies -- size now ${snapshot.size}`);
-  console.log(`Completed seeding all movies`);
+  console.log("⚡ Seeding tags to movies as sub collection");
+  for (const [index, movie] of localMoviesJSON.entries()) {
+    const tagsRef = firebaseApp.collection("movies").doc(`${movie.movieId}`).collection("tags");
+    let snapshot = await tagsRef.get();
+    console.log(`Current tags snapshot -- size now ${snapshot.size} for movie with id ${movie.movieId}`);
+    const tags = localTags.get(movie.movieId)
+    if (tags && tags.length > 0) {
+      console.log(`Found tags of size ${tags.length} for movie with id ${movie.movieId}`);
+      for (const tag of tags) {
+        await tagsRef.add(tag)
+      }
+      console.log(`Completed wiriting tags of size ${tags.length} for movie ${movie.movieId}`);
+      snapshot = await tagsRef.get();
+      console.log(`Current tags snapshot -- size now ${snapshot.size} for movie with id ${movie.movieId}`);
+    } else {
+      console.log(`No tags for movie with id ${movie.movieId}`);
+    }
+  }
 };

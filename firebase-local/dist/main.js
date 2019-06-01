@@ -16,5 +16,4 @@ const firebaseApp = authedApp({
     name: "Firebase Explorer"
 }, "firebase-explorer-test");
 movies_1.seedToFirebase(firebaseApp);
-console.log(`Finished seeding to firebase`);
 //# sourceMappingURL=main.js.map

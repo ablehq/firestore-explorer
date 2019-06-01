@@ -19,4 +19,3 @@ const firebaseApp = authedApp(
 );
 
 seedToFirebase(firebaseApp);
-console.log(`Finished seeding to firebase`);
