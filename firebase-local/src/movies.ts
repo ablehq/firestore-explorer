@@ -112,20 +112,25 @@ export const seedToFirebase = async (
   console.log(`Completed seeding all movies -- size now ${snapshot.size}`);
   console.log("⚡ Seeding tags to movies as sub collection");
   for (const [index, movie] of localMoviesJSON.entries()) {
-    const tagsRef = firebaseApp.collection("movies").doc(`${movie.movieId}`).collection("tags");
-    let snapshot = await tagsRef.get();
-    console.log(`Current tags snapshot -- size now ${snapshot.size} for movie with id ${movie.movieId}`);
-    const tags = localTags.get(movie.movieId)
-    if (tags && tags.length > 0) {
-      console.log(`Found tags of size ${tags.length} for movie with id ${movie.movieId}`);
-      for (const tag of tags) {
-        await tagsRef.add(tag)
-      }
-      console.log(`Completed wiriting tags of size ${tags.length} for movie ${movie.movieId}`);
-      snapshot = await tagsRef.get();
-      console.log(`Current tags snapshot -- size now ${snapshot.size} for movie with id ${movie.movieId}`);
-    } else {
-      console.log(`No tags for movie with id ${movie.movieId}`);
-    }
+    addTagsOrRatingsRef(firebaseApp, movie, "tags", localTags)
+    addTagsOrRatingsRef(firebaseApp, movie, "ratings", localRatings)
   }
 };
+
+const addTagsOrRatingsRef = async <T>(firebaseApp: firebase.firestore.Firestore, movie: Movie, collectionName: string, collectionData: Map<number, Array<T>>) => {
+  const collectionRef = firebaseApp.collection("movies").doc(`${movie.movieId}`).collection(collectionName);
+  let snapshot = await collectionRef.get();
+  console.log(`Current ${collectionName} snapshot -- size now ${snapshot.size} for movie with id ${movie.movieId}`);
+  const collection = collectionData.get(movie.movieId)
+  if (collection && collection.length > 0) {
+    console.log(`Found ${collectionName} of size ${collection.length} for movie with id ${movie.movieId}`);
+    for (const tag of collection) {
+      await collectionRef.add(tag)
+    }
+    console.log(`Completed wiriting ${collectionName} of size ${collection.length} for movie ${movie.movieId}`);
+    snapshot = await collectionRef.get();
+    console.log(`Current ${collectionName} snapshot -- size now ${snapshot.size} for movie with id ${movie.movieId}`);
+  } else {
+    console.log(`No collection for movie with id ${movie.movieId}`);
+  }
+}
