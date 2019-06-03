@@ -1,13 +1,8 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
+const ora_1 = require("ora");
+const rxjs_1 = require("rxjs");
+const operators_1 = require("rxjs/operators");
 exports.localMovies = new Map();
 exports.localLinks = new Map();
 exports.localTags = new Map();
@@ -38,67 +33,99 @@ const movieArrayMapperGenerator = (dataJSON, dataMap) => {
 };
 exports.loadLocalTags = movieArrayMapperGenerator(exports.localTagsJSON, exports.localTags);
 exports.loadLocalRatings = movieArrayMapperGenerator(exports.localRatingsJSON, exports.localRatings);
-const batchifyArray = (items, batchSize) => {
-    const pages = items.length / batchSize + 1;
-    const batches = [];
-    for (let index = 0; index < pages; index++) {
-        const pageStart = index * batchSize;
-        let pageEnd = pageStart + batchSize;
-        if (pageEnd > items.length) {
-            pageEnd = items.length;
+const tagRatingWriterObs = (firebaseApp, movie, collectionName, collectionData) => {
+    const collectionRef = firebaseApp
+        .collection("movies")
+        .doc(`${movie.movieId}`)
+        .collection(collectionName);
+    const collection = collectionData.get(movie.movieId);
+    const mergeables = [];
+    if (collection && collection.length > 0) {
+        for (const tag of collection) {
+            const obs = rxjs_1.from(collectionRef.add(tag));
+            mergeables.push(obs);
         }
-        batches.push(items.slice(pageStart, pageEnd));
     }
-    return batches;
+    if (mergeables.length > 0) {
+        return rxjs_1.merge(mergeables).pipe(operators_1.reduce(() => {
+            return movie;
+        }, movie));
+    }
+    return rxjs_1.of(movie);
 };
-exports.seedToFirebase = (firebaseApp) => __awaiter(this, void 0, void 0, function* () {
-    console.log("🏋️  Loading from local data/movies");
-    exports.loadLocalMovies();
-    exports.loadLocalLinks();
-    exports.loadLocalTags();
-    exports.loadLocalRatings();
-    const batchSize = 500;
-    const batchedMovies = batchifyArray(exports.localMoviesJSON, batchSize);
-    console.log("⚡ Seeding movies to firebase");
+const tagWriterObs = (firebaseApp, movie) => tagRatingWriterObs(firebaseApp, movie, "tags", exports.localTags);
+const ratingWriterObs = (firebaseApp, movie) => tagRatingWriterObs(firebaseApp, movie, "ratings", exports.localRatings);
+const movieWriteObs = (firebaseApp, movie) => {
     const moviesRef = firebaseApp.collection("movies");
-    let snapshot = yield moviesRef.get();
-    for (const [index, movieBatch] of batchedMovies.entries()) {
-        const batchWriter = firebaseApp.batch();
-        snapshot = yield moviesRef.get();
-        console.log(`Current movies snapshot -- size now ${snapshot.size}`);
-        for (const movie of movieBatch) {
-            const movieId = `${movie.movieId}`;
-            const movieRef = moviesRef.doc(movieId);
-            let movieWithLink = Object.assign({}, movie);
-            const link = exports.localLinks.get(movie.movieId);
-            if (link) {
-                movieWithLink = Object.assign({}, movieWithLink, { link: Object.assign({}, link) });
+    const movieId = `${movie.movieId}`;
+    return rxjs_1.from(moviesRef.doc(movieId).set(movie)).pipe(operators_1.map(_ => movie));
+};
+exports.seedToFirebase = (firebaseApp) => {
+    const movieSpinner = ora_1.default(`Start loding movies`).start();
+    const obs1 = rxjs_1.from(exports.localMoviesJSON).pipe(operators_1.mergeMap(movie => rxjs_1.concat(movieWriteObs(firebaseApp, movie), rxjs_1.merge(tagWriterObs(firebaseApp, movie), ratingWriterObs(firebaseApp, movie))).pipe(operators_1.reduce((_, movie) => movie, movie))), operators_1.scan((acc, movie) => {
+        acc.items.push(movie);
+        return acc;
+    }, {
+        items: new Array(),
+        total: exports.localLinksJSON.length
+    }), operators_1.takeWhile(acc => acc.items.length < exports.localMoviesJSON.length));
+    obs1.subscribe(val => {
+        movieSpinner.text = `Loading movies ${val.items.length} / ${val.total}`;
+    }, error => {
+        movieSpinner.fail("Failed loading movies");
+        console.log(error);
+    }, () => {
+        movieSpinner.succeed("Completed loading movies");
+        kickVerification(firebaseApp);
+    });
+};
+const kickVerification = (firebaseApp) => {
+    const movieSpinner = ora_1.default(`Checking data consistency`).start();
+    const moviesRef = firebaseApp.collection("movies");
+    const obs1 = rxjs_1.from(moviesRef.get()).pipe(operators_1.map(snapshot => {
+        return snapshot.size === exports.localMoviesJSON.length;
+    }));
+    const obs2 = rxjs_1.from(exports.localMoviesJSON.filter(movie => exports.localTags.has(movie.movieId))).pipe(operators_1.mergeMap(movie => {
+        return rxjs_1.from(firebaseApp
+            .collection("movies")
+            .doc(`${movie.movieId}`)
+            .collection("tags")
+            .get()).pipe(operators_1.map(snapshot => {
+            const tags = exports.localTags.get(movie.movieId);
+            if (tags) {
+                if (tags.length === snapshot.size) {
+                    return true;
+                }
+                return false;
             }
-            batchWriter.set(movieRef, movie);
-        }
-        yield batchWriter.commit();
-        console.log(`Completed wiriting batch of size ${movieBatch.length} at index ${index}`);
-    }
-    snapshot = yield moviesRef.get();
-    console.log(`Completed seeding all movies -- size now ${snapshot.size}`);
-    console.log("⚡ Seeding tags to movies as sub collection");
-    for (const [index, movie] of exports.localMoviesJSON.entries()) {
-        const tagsRef = firebaseApp.collection("movies").doc(`${movie.movieId}`).collection("tags");
-        let snapshot = yield tagsRef.get();
-        console.log(`Current tags snapshot -- size now ${snapshot.size} for movie with id ${movie.movieId}`);
-        const tags = exports.localTags.get(movie.movieId);
-        if (tags && tags.length > 0) {
-            console.log(`Found tags of size ${tags.length} for movie with id ${movie.movieId}`);
-            for (const tag of tags) {
-                yield tagsRef.add(tag);
+            return true;
+        }));
+    }));
+    const obs3 = rxjs_1.from(exports.localMoviesJSON.filter(movie => exports.localRatings.has(movie.movieId))).pipe(operators_1.mergeMap(movie => {
+        return rxjs_1.from(firebaseApp
+            .collection("movies")
+            .doc(`${movie.movieId}`)
+            .collection("ratings")
+            .get()).pipe(operators_1.map(snapshot => {
+            const tags = exports.localRatings.get(movie.movieId);
+            if (tags) {
+                if (tags.length === snapshot.size) {
+                    return true;
+                }
+                return false;
             }
-            console.log(`Completed wiriting tags of size ${tags.length} for movie ${movie.movieId}`);
-            snapshot = yield tagsRef.get();
-            console.log(`Current tags snapshot -- size now ${snapshot.size} for movie with id ${movie.movieId}`);
+            return true;
+        }));
+    }));
+    rxjs_1.merge(obs1, obs2, obs3)
+        .pipe(operators_1.reduce((acc, curr) => acc && curr, true))
+        .subscribe(verified => {
+        if (verified) {
+            movieSpinner.succeed("Completed data verification");
         }
         else {
-            console.log(`No tags for movie with id ${movie.movieId}`);
+            movieSpinner.fail("Failed data verification");
         }
-    }
-});
+    });
+};
 //# sourceMappingURL=movies.js.map

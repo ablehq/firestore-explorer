@@ -1,6 +1,7 @@
 import * as firebase from "@firebase/testing";
 import { FirebaseAuth } from "./models";
 import { seedToFirebase } from "./movies";
+
 /**
  * Creates a new app with authentication data matching the input.
  *
@@ -17,5 +18,4 @@ const firebaseApp = authedApp(
   },
   "firebase-explorer-test"
 );
-
 seedToFirebase(firebaseApp);

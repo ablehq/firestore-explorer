@@ -1,5 +1,8 @@
-import { Movie, Link, Rating, Tag } from "./models";
 import * as firebase from "@firebase/testing";
+import ora from "ora";
+import { concat, from, merge, of } from "rxjs";
+import { map, mergeMap, reduce, scan, takeWhile } from "rxjs/operators";
+import { Link, Movie, Rating, Tag } from "./models";
 
 export const localMovies = new Map<number, Movie>();
 export const localLinks = new Map<number, Link>();
@@ -17,8 +20,6 @@ export const localRatingsJSON: Array<
 
 type MovieID = Movie | Link | Rating | Tag;
 
-
-
 const movieMapperGenerator = (
   dataJSON: Array<MovieID>,
   dataMap: Map<number, MovieID>
@@ -30,9 +31,11 @@ const movieMapperGenerator = (
   };
 };
 
-export const loadLocalMovies = movieMapperGenerator(localMoviesJSON, localMovies)
+export const loadLocalMovies = movieMapperGenerator(
+  localMoviesJSON,
+  localMovies
+);
 export const loadLocalLinks = movieMapperGenerator(localLinksJSON, localLinks);
-
 
 const movieArrayMapperGenerator = (
   dataJSON: Array<MovieID>,
@@ -49,88 +52,165 @@ const movieArrayMapperGenerator = (
   };
 };
 
-export const loadLocalTags = movieArrayMapperGenerator(localTagsJSON, localTags);
+export const loadLocalTags = movieArrayMapperGenerator(
+  localTagsJSON,
+  localTags
+);
 export const loadLocalRatings = movieArrayMapperGenerator(
   localRatingsJSON,
   localRatings
 );
 
-const batchifyArray = <T>(items: Array<T>, batchSize: number): Array<Array<T>> => {
-  const pages = items.length / batchSize + 1
-  const batches: Array<Array<T>> = []
-  for (let index = 0; index < pages; index++) {
-    const pageStart = index * batchSize
-    let pageEnd = pageStart + batchSize
-    if (pageEnd > items.length) {
-      pageEnd = items.length
-    }
-    batches.push(items.slice(pageStart, pageEnd))
-  }
-  return batches
-}
-
-export const seedToFirebase = async (
-  firebaseApp: firebase.firestore.Firestore
+const tagRatingWriterObs = (
+  firebaseApp: firebase.firestore.Firestore,
+  movie: Movie,
+  collectionName: string,
+  collectionData: Map<number, Array<Tag | Rating>>
 ) => {
-  console.log("🏋️  Loading from local data/movies");
-  loadLocalMovies()
-  loadLocalLinks()
-  loadLocalTags()
-  loadLocalRatings()
-  const batchSize = 500
-  const batchedMovies = batchifyArray(localMoviesJSON, batchSize)
-  console.log("⚡ Seeding movies to firebase");
-  const moviesRef = firebaseApp.collection("movies");
-  let snapshot = await moviesRef.get();
-  for (const [index, movieBatch] of batchedMovies.entries()) {
-    const batchWriter = firebaseApp.batch()
-    snapshot = await moviesRef.get();
-    console.log(`Current movies snapshot -- size now ${snapshot.size}`);
-    for (const movie of movieBatch) {
-      const movieId = `${movie.movieId}`;
-      const movieRef = moviesRef.doc(movieId)
-      let movieWithLink: Movie & ({
-        link: Link
-      } | {}) = {
-        ...movie,
-      }
-      const link = localLinks.get(movie.movieId)
-      if (link) {
-        movieWithLink = {
-          ...movieWithLink,
-          link: {
-            ...link
-          }
-        }
-      }
-      batchWriter.set(movieRef, movie)
+  const collectionRef = firebaseApp
+    .collection("movies")
+    .doc(`${movie.movieId}`)
+    .collection(collectionName);
+  const collection = collectionData.get(movie.movieId);
+  const mergeables = [];
+  if (collection && collection.length > 0) {
+    for (const tag of collection) {
+      const obs = from(collectionRef.add(tag));
+      mergeables.push(obs);
     }
-    await batchWriter.commit()
-    console.log(`Completed wiriting batch of size ${movieBatch.length} at index ${index}`);
   }
-  snapshot = await moviesRef.get();
-  console.log(`Completed seeding all movies -- size now ${snapshot.size}`);
-  console.log("⚡ Seeding tags to movies as sub collection");
-  for (const [index, movie] of localMoviesJSON.entries()) {
-    addTagsOrRatingsRef(firebaseApp, movie, "tags", localTags)
-    addTagsOrRatingsRef(firebaseApp, movie, "ratings", localRatings)
+  if (mergeables.length > 0) {
+    return merge(mergeables).pipe(
+      reduce(() => {
+        return movie;
+      }, movie)
+    );
   }
+  return of(movie);
 };
 
-const addTagsOrRatingsRef = async <T>(firebaseApp: firebase.firestore.Firestore, movie: Movie, collectionName: string, collectionData: Map<number, Array<T>>) => {
-  const collectionRef = firebaseApp.collection("movies").doc(`${movie.movieId}`).collection(collectionName);
-  let snapshot = await collectionRef.get();
-  console.log(`Current ${collectionName} snapshot -- size now ${snapshot.size} for movie with id ${movie.movieId}`);
-  const collection = collectionData.get(movie.movieId)
-  if (collection && collection.length > 0) {
-    console.log(`Found ${collectionName} of size ${collection.length} for movie with id ${movie.movieId}`);
-    for (const tag of collection) {
-      await collectionRef.add(tag)
+const tagWriterObs = (
+  firebaseApp: firebase.firestore.Firestore,
+  movie: Movie
+) => tagRatingWriterObs(firebaseApp, movie, "tags", localTags);
+
+const ratingWriterObs = (
+  firebaseApp: firebase.firestore.Firestore,
+  movie: Movie
+) => tagRatingWriterObs(firebaseApp, movie, "ratings", localRatings);
+
+const movieWriteObs = (
+  firebaseApp: firebase.firestore.Firestore,
+  movie: Movie
+) => {
+  const moviesRef = firebaseApp.collection("movies");
+  const movieId = `${movie.movieId}`;
+  return from(moviesRef.doc(movieId).set(movie)).pipe(map(_ => movie));
+};
+
+export const seedToFirebase = (firebaseApp: firebase.firestore.Firestore) => {
+  const movieSpinner = ora(`Start loding movies`).start();
+
+  const obs1 = from(localMoviesJSON).pipe(
+    mergeMap(movie =>
+      concat(
+        movieWriteObs(firebaseApp, movie),
+        merge(
+          tagWriterObs(firebaseApp, movie),
+          ratingWriterObs(firebaseApp, movie)
+        )
+      ).pipe(reduce((_, movie) => movie, movie))
+    ),
+    scan(
+      (acc, movie: Movie) => {
+        acc.items.push(movie);
+        return acc;
+      },
+      {
+        items: new Array<Movie>(),
+        total: localLinksJSON.length
+      }
+    ),
+    takeWhile(acc => acc.items.length < localMoviesJSON.length)
+  );
+  obs1.subscribe(
+    val => {
+      movieSpinner.text = `Loading movies ${val.items.length} / ${val.total}`;
+    },
+    error => {
+      movieSpinner.fail("Failed loading movies");
+      console.log(error);
+    },
+    () => {
+      movieSpinner.succeed("Completed loading movies");
+      kickVerification(firebaseApp);
     }
-    console.log(`Completed wiriting ${collectionName} of size ${collection.length} for movie ${movie.movieId}`);
-    snapshot = await collectionRef.get();
-    console.log(`Current ${collectionName} snapshot -- size now ${snapshot.size} for movie with id ${movie.movieId}`);
-  } else {
-    console.log(`No collection for movie with id ${movie.movieId}`);
-  }
-}
+  );
+};
+
+const kickVerification = (firebaseApp: firebase.firestore.Firestore) => {
+  const movieSpinner = ora(`Checking data consistency`).start();
+  const moviesRef = firebaseApp.collection("movies");
+  const obs1 = from(moviesRef.get()).pipe(
+    map(snapshot => {
+      return snapshot.size === localMoviesJSON.length;
+    })
+  );
+  const obs2 = from(
+    localMoviesJSON.filter(movie => localTags.has(movie.movieId))
+  ).pipe(
+    mergeMap(movie => {
+      return from(
+        firebaseApp
+          .collection("movies")
+          .doc(`${movie.movieId}`)
+          .collection("tags")
+          .get()
+      ).pipe(
+        map(snapshot => {
+          const tags = localTags.get(movie.movieId);
+          if (tags) {
+            if (tags.length === snapshot.size) {
+              return true;
+            }
+            return false;
+          }
+          return true;
+        })
+      );
+    })
+  );
+  const obs3 = from(
+    localMoviesJSON.filter(movie => localRatings.has(movie.movieId))
+  ).pipe(
+    mergeMap(movie => {
+      return from(
+        firebaseApp
+          .collection("movies")
+          .doc(`${movie.movieId}`)
+          .collection("ratings")
+          .get()
+      ).pipe(
+        map(snapshot => {
+          const tags = localRatings.get(movie.movieId);
+          if (tags) {
+            if (tags.length === snapshot.size) {
+              return true;
+            }
+            return false;
+          }
+          return true;
+        })
+      );
+    })
+  );
+  merge(obs1, obs2, obs3)
+    .pipe(reduce((acc, curr) => acc && curr, true))
+    .subscribe(verified => {
+      if (verified) {
+        movieSpinner.succeed("Completed data verification");
+      } else {
+        movieSpinner.fail("Failed data verification");
+      }
+    });
+};
