@@ -1,6 +1,6 @@
 import * as firebase from "@firebase/testing";
 import ora from "ora";
-import { concat, from, merge, of } from "rxjs";
+import { concat, from, merge, of, iif } from "rxjs";
 import { map, mergeMap, reduce, scan, takeWhile } from "rxjs/operators";
 import { Link, Movie, Rating, Tag } from "./models";
 
@@ -110,8 +110,17 @@ const movieWriteObs = (
 
 export const seedToFirebase = (firebaseApp: firebase.firestore.Firestore) => {
   const movieSpinner = ora(`Start loding movies`).start();
+  const moviesRef = firebaseApp.collection("movies");
+  const snapShotObs = from(moviesRef.get()).pipe(
+    map(snapshot => {
+      return {
+        items: new Array<Movie>(),
+        total: snapshot.size
+      };
+    })
+  );
 
-  const obs1 = from(localMoviesJSON).pipe(
+  const dataObs = from(localMoviesJSON).pipe(
     mergeMap(movie =>
       concat(
         movieWriteObs(firebaseApp, movie),
@@ -128,24 +137,40 @@ export const seedToFirebase = (firebaseApp: firebase.firestore.Firestore) => {
       },
       {
         items: new Array<Movie>(),
-        total: localLinksJSON.length
+        total: localMoviesJSON.length
       }
     ),
     takeWhile(acc => acc.items.length < localMoviesJSON.length)
   );
-  obs1.subscribe(
-    val => {
-      movieSpinner.text = `Loading movies ${val.items.length} / ${val.total}`;
-    },
-    error => {
-      movieSpinner.fail("Failed loading movies");
-      console.log(error);
-    },
-    () => {
-      movieSpinner.succeed("Completed loading movies");
-      kickVerification(firebaseApp);
-    }
-  );
+
+  snapShotObs
+    .pipe(
+      mergeMap(snapshot =>
+        iif(
+          () => snapshot.total > 0,
+          of({
+            items: new Array<Movie>(),
+            total: localMoviesJSON.length
+          }),
+          dataObs
+        )
+      )
+    )
+    .subscribe(
+      val => {
+        movieSpinner.text = `Loading movies ${val.items.length} / ${val.total}`;
+      },
+      error => {
+        movieSpinner.fail(
+          "Failed loading movies, restart firebase emulator and run yarn seed_movies"
+        );
+        console.log(error);
+      },
+      () => {
+        movieSpinner.succeed("Completed loading movies");
+        kickVerification(firebaseApp);
+      }
+    );
 };
 
 const kickVerification = (firebaseApp: firebase.firestore.Firestore) => {

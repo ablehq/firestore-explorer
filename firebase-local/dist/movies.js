@@ -62,17 +62,29 @@ const movieWriteObs = (firebaseApp, movie) => {
 };
 exports.seedToFirebase = (firebaseApp) => {
     const movieSpinner = ora_1.default(`Start loding movies`).start();
-    const obs1 = rxjs_1.from(exports.localMoviesJSON).pipe(operators_1.mergeMap(movie => rxjs_1.concat(movieWriteObs(firebaseApp, movie), rxjs_1.merge(tagWriterObs(firebaseApp, movie), ratingWriterObs(firebaseApp, movie))).pipe(operators_1.reduce((_, movie) => movie, movie))), operators_1.scan((acc, movie) => {
+    const moviesRef = firebaseApp.collection("movies");
+    const snapShotObs = rxjs_1.from(moviesRef.get()).pipe(operators_1.map(snapshot => {
+        return {
+            items: new Array(),
+            total: snapshot.size
+        };
+    }));
+    const dataObs = rxjs_1.from(exports.localMoviesJSON).pipe(operators_1.mergeMap(movie => rxjs_1.concat(movieWriteObs(firebaseApp, movie), rxjs_1.merge(tagWriterObs(firebaseApp, movie), ratingWriterObs(firebaseApp, movie))).pipe(operators_1.reduce((_, movie) => movie, movie))), operators_1.scan((acc, movie) => {
         acc.items.push(movie);
         return acc;
     }, {
         items: new Array(),
-        total: exports.localLinksJSON.length
+        total: exports.localMoviesJSON.length
     }), operators_1.takeWhile(acc => acc.items.length < exports.localMoviesJSON.length));
-    obs1.subscribe(val => {
+    snapShotObs
+        .pipe(operators_1.mergeMap(snapshot => rxjs_1.iif(() => snapshot.total > 0, rxjs_1.of({
+        items: new Array(),
+        total: exports.localMoviesJSON.length
+    }), dataObs)))
+        .subscribe(val => {
         movieSpinner.text = `Loading movies ${val.items.length} / ${val.total}`;
     }, error => {
-        movieSpinner.fail("Failed loading movies");
+        movieSpinner.fail("Failed loading movies, restart firebase emulator and run yarn seed_movies");
         console.log(error);
     }, () => {
         movieSpinner.succeed("Completed loading movies");
