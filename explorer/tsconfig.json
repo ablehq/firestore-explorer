@@ -10,6 +10,7 @@
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
     "baseUrl": ".",
+    "experimentalDecorators": true,
     "types": ["webpack-env", "jest", "vuetify"],
     "paths": {
       "@/*": ["src/*"]
