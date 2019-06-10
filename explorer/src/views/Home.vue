@@ -12,5 +12,4 @@ import Component from "vue-class-component";
 export default class Home extends Vue {}
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
