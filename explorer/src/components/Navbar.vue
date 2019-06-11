@@ -8,15 +8,10 @@
       <v-toolbar-title class="text-uppercase grey--text">
         <span class="font-weight-light">Explorer</span>
       </v-toolbar-title>
-      <v-spacer></v-spacer>
-      <v-btn flat color="grey">
-        <span>Sign Out</span>
-        <v-icon right>exit_to_app</v-icon>
-      </v-btn>
     </v-toolbar>
 
     <v-navigation-drawer app v-model="drawer">
-      <p>test</p>
+      <sidebar></sidebar>
     </v-navigation-drawer>
   </nav>
 </template>
@@ -24,8 +19,11 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
+import Sidebar from "./Sidebar.vue";
 
-@Component({})
+@Component({
+  components: { Sidebar }
+})
 export default class Navbar extends Vue {
   drawer: Boolean = false;
 }
