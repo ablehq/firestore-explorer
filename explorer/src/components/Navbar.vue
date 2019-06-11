@@ -6,7 +6,7 @@
         class="grey--text"
       ></v-toolbar-side-icon>
       <v-toolbar-title class="text-uppercase grey--text">
-        <span class="font-weight-light">Explorer</span>
+        <span class="font-weight-light"></span>
       </v-toolbar-title>
     </v-toolbar>
 
