@@ -120,6 +120,9 @@
           </v-form>
         </v-flex>
       </v-layout>
+      <v-snackbar v-model="snackbar" :timeout="3000" top vertical>
+        {{ errorText }}
+      </v-snackbar>
     </v-container>
   </v-container>
 </template>
@@ -151,6 +154,8 @@ export default class NewServer extends Vue {
   storageBucket: string = "";
   messagingSenderId: string = "";
   loading: boolean = false;
+  snackbar: boolean = false;
+  errorText: string = "";
 
   generalStringRules(name: string) {
     return [
@@ -196,15 +201,21 @@ export default class NewServer extends Vue {
 
   async createServer() {
     this.loading = true;
-    await this.$store.dispatch<Action>({
+    const datum = await this.$store.dispatch<Action>({
       type: ActionTypes.AddNewServer,
       payload: this.isCloud
         ? this.buildCloudServer()
         : this.buildEmulatedServer()
     });
-    this.$router.push({
-      name: "home"
-    });
+    this.loading = false;
+    if (datum.success) {
+      this.$router.push({
+        name: "home"
+      });
+    } else {
+      this.snackbar = true;
+      this.errorText = datum.error.message;
+    }
   }
 }
 </script>
