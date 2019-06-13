@@ -1,0 +1,13 @@
+{
+  "servers": [
+    {
+      "type": "emulated",
+      "name": "Local Machine",
+      "projectId": "12312312",
+      "appId": "123456",
+      "color": "#1b16af",
+      "isEmulated": true,
+      "id": 1
+    }
+  ]
+}
