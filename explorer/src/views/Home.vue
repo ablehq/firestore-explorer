@@ -10,24 +10,28 @@
     <v-flex>
       <v-container fluid grid-list-lg>
         <v-layout row wrap>
-          <v-flex xs12 md4 v-for="server in servers" :key="server.name">
+          <v-flex xs12 md4 v-for="server in servers" :key="server.id">
             <v-card>
               <v-card-title primary-title>
                 <v-layout row wrap justify-space-between>
                   <v-flex>
-                    <span class="title">{{ server.name }}</span>
+                    <span class="title" :style="{ color: server.color }">
+                      {{ server.name }}
+                    </span>
                   </v-flex>
                   <v-flex shrink>
-                    <v-icon :color="server.color">{{ server.type === "emulated" ? "adb" : "cloud" }}</v-icon>
+                    <v-icon :color="server.color">
+                      {{ server.type === "emulated" ? "adb" : "cloud" }}
+                    </v-icon>
                   </v-flex>
                 </v-layout>
               </v-card-title>
               <v-card-text>
-                <span color="red" class="body">add details of server like url, api key etc</span>
+                <code>{{ server }}</code>
               </v-card-text>
               <v-divider></v-divider>
               <v-card-actions>
-                <v-btn flat small icon @click.stop="showDialog(server.name)">
+                <v-btn flat small icon @click.stop="showDialog(server)">
                   <v-icon>delete</v-icon>
                 </v-btn>
                 <v-spacer></v-spacer>
@@ -43,11 +47,13 @@
     </v-flex>
     <v-dialog v-model="dialog" max-width="290">
       <v-card>
-        <v-card-title class="headline">Delete {{ serverSelectedToDelete }}</v-card-title>
+        <v-card-title class="headline"
+          >Delete {{ serverToBeDeleted.name }}</v-card-title
+        >
 
         <v-card-text>
           Do you want to permanently delete server
-          {{ serverSelectedToDelete }}.
+          {{ serverToBeDeleted.name }}.
         </v-card-text>
 
         <v-card-actions>
@@ -57,6 +63,10 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-snackbar v-model="snackbar" :timeout="3000" top vertical>{{
+      errorText
+    }}</v-snackbar>
   </v-container>
 </template>
 
@@ -70,32 +80,54 @@ import { Action, ActionTypes } from "../stores";
 })
 export default class Home extends Vue {
   dialog: boolean = false;
-  serverSelectedToDelete: string = "";
+  serverToDelete: Server | {} = {};
+  snackbar: boolean = false;
+  errorText: string = "";
+
+  created() {
+    this.$store.dispatch<Action>({
+      type: ActionTypes.FetchServers,
+      payload: {}
+    });
+  }
+
   get servers(): Array<Server> {
     return this.$store.getters.servers;
   }
 
-  showDialog(serverName: string) {
+  showDialog(server: Server) {
     this.dialog = true;
-    this.serverSelectedToDelete = serverName;
+    this.serverToDelete = server;
   }
 
   cancelDialog() {
     this.dialog = false;
-    this.serverSelectedToDelete = "";
+  }
+
+  get serverToBeDeleted() {
+    return this.serverToDelete || {};
   }
 
   async deleteServer() {
     this.dialog = false;
-    await this.$store.dispatch<Action>({
+    const datum = await this.$store.dispatch<Action>({
       type: ActionTypes.DeleteServer,
       payload: {
-        serverName: this.serverSelectedToDelete
+        serverId: (this.serverToDelete as Server).id
       }
     });
-    this.serverSelectedToDelete = "";
+    if (!datum.success) {
+      this.snackbar = true;
+      this.errorText = datum.error.message;
+    }
   }
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+code {
+  background-color: transparent;
+  color: #999;
+  box-shadow: 0 0 0 0;
+}
+</style>

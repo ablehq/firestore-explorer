@@ -1,4 +1,5 @@
 export interface BaseServer {
+  readonly id: string;
   readonly type: "emulated" | "cloud";
   readonly name: string;
   readonly color: string;
@@ -34,6 +35,7 @@ export const GenerateEmulatedServer = function(
   appId: string
 ): EmulatedServer {
   return {
+    id: "temp",
     type: "emulated",
     name,
     projectId,
@@ -55,6 +57,7 @@ export const GenerateCloudServer = function(
   messagingSenderId: string
 ): CloudServer {
   return {
+    id: "temp",
     type: "cloud",
     name,
     projectId,
