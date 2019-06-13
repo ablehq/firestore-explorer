@@ -1,11 +1,8 @@
 <template>
   <nav>
-    <v-toolbar flat app>
-      <v-toolbar-side-icon
-        @click="drawer = !drawer"
-        class="grey--text"
-      ></v-toolbar-side-icon>
-      <v-toolbar-title class="text-uppercase grey--text">
+    <v-toolbar flat app color="transparent">
+      <v-toolbar-side-icon @click="drawer = !drawer"></v-toolbar-side-icon>
+      <v-toolbar-title class="text-uppercase">
         <span class="font-weight-light"></span>
       </v-toolbar-title>
     </v-toolbar>
