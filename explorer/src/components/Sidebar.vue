@@ -79,18 +79,9 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 import { mapActions, mapGetters } from "vuex";
-@Component({
-  computed: {
-    ...mapGetters("theme", ["isThemeDark"])
-  },
-  methods: {
-    ...mapActions("theme", ["setDarkMode"])
-  }
-})
+import { ActionTypes, Action } from "../stores";
+@Component({})
 export default class Sidebar extends Vue {
-  isThemeDark!: boolean;
-  setDarkMode!: (isDarkModeOn: boolean) => void;
-
   items = [
     {
       title: "Servers",
@@ -120,12 +111,21 @@ export default class Sidebar extends Vue {
     console.log(item);
   }
 
+  get isThemeDark(): boolean {
+    return this.$store.getters.isThemeDark;
+  }
+
   get toggleDarkModeText(): string {
     return this.isThemeDark ? "Turn off Dark Mode" : "Turn on Dark Mode";
   }
 
   toggleDarkMode() {
-    this.setDarkMode(!this.isThemeDark);
+    this.$store.dispatch<Action>({
+      type: ActionTypes.SetTheme,
+      payload: {
+        darkModeOn: !this.isThemeDark
+      }
+    });
   }
 }
 </script>
