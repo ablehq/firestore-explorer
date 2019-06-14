@@ -3,11 +3,20 @@
     {
       "type": "emulated",
       "name": "Madhu's Local Machine",
-      "projectId": "adasdas",
+      "projectId": "adasdasaaaa",
       "appId": "adasda",
       "color": "#429926",
       "isEmulated": true,
       "id": 1
+    },
+    {
+      "type": "emulated",
+      "name": "Madhu's Local Emulator",
+      "projectId": "firebase-explorer-test",
+      "appId": "app-1560513520330-0.37925741562087234",
+      "color": "#5fb4d3",
+      "isEmulated": true,
+      "id": 2
     }
   ]
 }

@@ -59,7 +59,7 @@ export const actions: ActionTree<ServersState, RootState> = {
   ) {
     try {
       const server: Server = await apiServer
-        .post(`/servers/${id}`, rest)
+        .put(`/servers/${id}`, rest)
         .then(resp => resp.data);
       context.commit<Mutation>({
         type: MutationTypes.EditServer,
@@ -118,4 +118,5 @@ export const actions: ActionTree<ServersState, RootState> = {
 export type Action =
   | AddNewServerAction
   | DeleteServerAction
-  | FetchServersAction;
+  | FetchServersAction
+  | EditServerAction;

@@ -32,10 +32,11 @@ export const GenerateEmulatedServer = function(
   name: string,
   color: string,
   projectId: string,
-  appId: string
+  appId: string,
+  id: string = "temp"
 ): EmulatedServer {
   return {
-    id: "temp",
+    id: id,
     type: "emulated",
     name,
     projectId,
@@ -54,10 +55,11 @@ export const GenerateCloudServer = function(
   authDomain: string,
   databaseURL: string,
   storageBucket: string,
-  messagingSenderId: string
+  messagingSenderId: string,
+  id: string = "temp"
 ): CloudServer {
   return {
-    id: "temp",
+    id: id,
     type: "cloud",
     name,
     projectId,

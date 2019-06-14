@@ -11,18 +11,8 @@
         <v-flex xs12 md3>
           <v-form v-model="valid" ref="serverForm">
             <v-flex>
-              <v-radio-group
-                row
-                class="mt-0"
-                v-model="serverType"
-                :disabled="loading"
-              >
-                <v-radio
-                  label="Emulated"
-                  value="emulated"
-                  color="success"
-                  :disabled="loading"
-                ></v-radio>
+              <v-radio-group row class="mt-0" v-model="serverType" :disabled="loading">
+                <v-radio label="Emulated" value="emulated" color="success" :disabled="loading"></v-radio>
                 <v-radio label="Cloud" value="cloud" color="success"></v-radio>
               </v-radio-group>
             </v-flex>
@@ -101,12 +91,7 @@
               ></v-text-field>
             </v-flex>
             <v-layout align-center>
-              <v-chip
-                :disabled="loading"
-                small
-                :color="serverColor"
-                @click="changeServerColor"
-              ></v-chip>
+              <v-chip :disabled="loading" small :color="serverColor" @click="changeServerColor"></v-chip>
               <v-card flat class="caption">server color tag</v-card>
               <v-spacer></v-spacer>
               <v-btn
@@ -114,15 +99,12 @@
                 large
                 @click="createServer"
                 :loading="loading"
-                >{{ this.isInEditMode ? "Edit" : "Create" }}</v-btn
-              >
+              >{{ this.isInEditMode ? "Update" : "Create" }}</v-btn>
             </v-layout>
           </v-form>
         </v-flex>
       </v-layout>
-      <v-snackbar v-model="snackbar" :timeout="3000" top vertical>{{
-        errorText
-      }}</v-snackbar>
+      <v-snackbar v-model="snackbar" :timeout="3000" top vertical>{{ errorText }}</v-snackbar>
     </v-container>
   </v-container>
 </template>
@@ -213,39 +195,78 @@ export default class NewServer extends Vue {
   }
 
   buildEmulatedServer(): Server {
-    return GenerateEmulatedServer(
-      this.name,
-      this.serverColor,
-      this.projectId,
-      this.appId
-    );
+    if (!this.isInEditMode) {
+      return GenerateEmulatedServer(
+        this.name,
+        this.serverColor,
+        this.projectId,
+        this.appId
+      );
+    } else {
+      return GenerateEmulatedServer(
+        this.name,
+        this.serverColor,
+        this.projectId,
+        this.appId,
+        this.serverId
+      );
+    }
   }
 
   buildCloudServer(): Server {
-    return GenerateCloudServer(
-      this.name,
-      this.serverColor,
-      this.projectId,
-      this.appId,
-      this.apiKey,
-      this.authDomain,
-      this.databaseURL,
-      this.storageBucket,
-      this.messagingSenderId
-    );
+    if (!this.isInEditMode) {
+      return GenerateCloudServer(
+        this.name,
+        this.serverColor,
+        this.projectId,
+        this.appId,
+        this.apiKey,
+        this.authDomain,
+        this.databaseURL,
+        this.storageBucket,
+        this.messagingSenderId
+      );
+    } else {
+      return GenerateCloudServer(
+        this.name,
+        this.serverColor,
+        this.projectId,
+        this.appId,
+        this.apiKey,
+        this.authDomain,
+        this.databaseURL,
+        this.storageBucket,
+        this.messagingSenderId,
+        this.serverId
+      );
+    }
   }
 
   async createServer() {
     this.loading = true;
     if (this.isInEditMode) {
-      console.log("Handle edit mode");
-      this.loading = false;
-    } else {
       const datum = await this.$store.dispatch<Action>({
-        type: ActionTypes.AddNewServer,
+        type: ActionTypes.EditServer,
         payload: this.isCloud
           ? this.buildCloudServer()
           : this.buildEmulatedServer()
+      });
+      this.loading = false;
+      if (datum.success) {
+        this.$router.push({
+          name: "home"
+        });
+      } else {
+        this.snackbar = true;
+        this.errorText = datum.error.message;
+      }
+    } else {
+      const server: Server = this.isCloud
+        ? this.buildCloudServer()
+        : this.buildEmulatedServer();
+      const datum = await this.$store.dispatch<Action>({
+        type: ActionTypes.AddNewServer,
+        payload: server
       });
       this.loading = false;
       if (datum.success) {
