@@ -5,11 +5,17 @@ import apiServer from "../ApiServer";
 export enum ActionTypes {
   FetchServers = "FetchServers",
   AddNewServer = "AddNewServer",
-  DeleteServer = "DeleteServer"
+  DeleteServer = "DeleteServer",
+  EditServer = "EditServer"
 }
 
 export interface AddNewServerAction extends ActionPayload {
   type: ActionTypes.AddNewServer;
+  payload: Server;
+}
+
+export interface EditServerAction extends ActionPayload {
+  type: ActionTypes.EditServer;
   payload: Server;
 }
 
@@ -35,6 +41,28 @@ export const actions: ActionTree<ServersState, RootState> = {
         .then(resp => resp.data);
       context.commit<Mutation>({
         type: MutationTypes.AddNewServer,
+        payload: server
+      });
+      return {
+        success: true
+      };
+    } catch (e) {
+      return {
+        success: false,
+        error: e
+      };
+    }
+  },
+  async [ActionTypes.EditServer](
+    context,
+    { payload: { id, ...rest } }: EditServerAction
+  ) {
+    try {
+      const server: Server = await apiServer
+        .post(`/servers/${id}`, rest)
+        .then(resp => resp.data);
+      context.commit<Mutation>({
+        type: MutationTypes.EditServer,
         payload: server
       });
       return {

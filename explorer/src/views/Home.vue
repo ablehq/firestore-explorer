@@ -31,8 +31,23 @@
               </v-card-text>
               <v-divider></v-divider>
               <v-card-actions>
-                <v-btn flat small icon @click.stop="showDialog(server)">
+                <v-btn
+                  flat
+                  small
+                  icon
+                  color="grey darken-2"
+                  @click.stop="showDialog(server)"
+                >
                   <v-icon>delete</v-icon>
+                </v-btn>
+                <v-btn
+                  flat
+                  small
+                  icon
+                  color="grey darken-2"
+                  @click.stop="editServer(server)"
+                >
+                  <v-icon>edit</v-icon>
                 </v-btn>
                 <v-spacer></v-spacer>
                 <v-btn flat small>
@@ -120,6 +135,15 @@ export default class Home extends Vue {
       this.snackbar = true;
       this.errorText = datum.error.message;
     }
+  }
+
+  editServer(server: Server) {
+    this.$router.push({
+      name: "edit-server",
+      params: {
+        serverId: `${server.id}`
+      }
+    });
   }
 }
 </script>

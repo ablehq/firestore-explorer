@@ -4,7 +4,8 @@ import { ServersState, Server } from "./State";
 export enum MutationTypes {
   AddNewServer = "AddNewServer",
   DeleteServer = "DeleteServer",
-  SetServers = "SetServers"
+  SetServers = "SetServers",
+  EditServer = "EditServer"
 }
 
 export interface AddServerMutation extends MutationPayload {
@@ -24,6 +25,11 @@ export interface SetServersMutation extends MutationPayload {
   payload: Array<Server>;
 }
 
+export interface EditServerMutation extends MutationPayload {
+  type: MutationTypes.EditServer;
+  payload: Server;
+}
+
 export const mutations: MutationTree<ServersState> = {
   [MutationTypes.AddNewServer](state, { payload }: AddServerMutation) {
     state.servers = [payload].concat(state.servers);
@@ -35,10 +41,19 @@ export const mutations: MutationTree<ServersState> = {
     state.servers = state.servers.filter(
       (server: Server) => server.id !== payload.serverId
     );
+  },
+  [MutationTypes.EditServer](state, { payload }: EditServerMutation) {
+    const index = state.servers.findIndex(
+      (server: Server) => server.id === payload.id
+    );
+    if (index >= 0) {
+      state.servers.splice(index, 0, payload);
+    }
   }
 };
 
 export type Mutation =
   | AddServerMutation
   | DeleteServerMutation
-  | SetServersMutation;
+  | SetServersMutation
+  | EditServerMutation;

@@ -2,10 +2,10 @@
   "servers": [
     {
       "type": "emulated",
-      "name": "Local Machine",
-      "projectId": "12312312",
-      "appId": "123456",
-      "color": "#1b16af",
+      "name": "Madhu's Local Machine",
+      "projectId": "adasdas",
+      "appId": "adasda",
+      "color": "#429926",
       "isEmulated": true,
       "id": 1
     }

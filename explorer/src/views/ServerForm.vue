@@ -4,7 +4,7 @@
       <v-btn icon to="/">
         <v-icon>arrow_back</v-icon>
       </v-btn>
-      <v-toolbar-title>Create New Server</v-toolbar-title>
+      <v-toolbar-title>{{ formTitle }}</v-toolbar-title>
     </v-toolbar>
     <v-container fluid>
       <v-layout row wrap>
@@ -114,15 +114,15 @@
                 large
                 @click="createServer"
                 :loading="loading"
-                >Create</v-btn
+                >{{ this.isInEditMode ? "Edit" : "Create" }}</v-btn
               >
             </v-layout>
           </v-form>
         </v-flex>
       </v-layout>
-      <v-snackbar v-model="snackbar" :timeout="3000" top vertical>
-        {{ errorText }}
-      </v-snackbar>
+      <v-snackbar v-model="snackbar" :timeout="3000" top vertical>{{
+        errorText
+      }}</v-snackbar>
     </v-container>
   </v-container>
 </template>
@@ -137,8 +137,10 @@ import {
   GenerateEmulatedServer,
   GenerateCloudServer
 } from "../stores/servers/State";
+import { Prop } from "vue-property-decorator";
 @Component({})
 export default class NewServer extends Vue {
+  @Prop(String) readonly serverId!: string;
   valid: boolean = false;
   name: string = "";
   appId: string = "";
@@ -156,6 +158,40 @@ export default class NewServer extends Vue {
   loading: boolean = false;
   snackbar: boolean = false;
   errorText: string = "";
+  isInEditMode: boolean = false;
+
+  created() {
+    if (this.serverId) {
+      const servers = this.$store.getters.servers as Array<Server>;
+      const server = servers.find(item => `${item.id}` === this.serverId);
+      if (server) {
+        this.name = server.name;
+        this.appId = server.appId;
+        this.projectId = server.projectId;
+        this.serverType = server.type;
+        this.serverColor = server.color;
+        switch (server.type) {
+          case "emulated":
+            break;
+          case "cloud":
+            this.apiKey = server.apiKey;
+            this.authDomain = server.authDomain;
+            this.databaseURL = server.databaseURL;
+            this.storageBucket = server.storageBucket;
+            this.messagingSenderId = server.messagingSenderId;
+            break;
+        }
+      }
+      this.isInEditMode = true;
+    }
+  }
+
+  get formTitle(): string {
+    if (this.isInEditMode) {
+      return `Edit ${this.name}`;
+    }
+    return `Create New Server`;
+  }
 
   generalStringRules(name: string) {
     return [
@@ -201,20 +237,25 @@ export default class NewServer extends Vue {
 
   async createServer() {
     this.loading = true;
-    const datum = await this.$store.dispatch<Action>({
-      type: ActionTypes.AddNewServer,
-      payload: this.isCloud
-        ? this.buildCloudServer()
-        : this.buildEmulatedServer()
-    });
-    this.loading = false;
-    if (datum.success) {
-      this.$router.push({
-        name: "home"
-      });
+    if (this.isInEditMode) {
+      console.log("Handle edit mode");
+      this.loading = false;
     } else {
-      this.snackbar = true;
-      this.errorText = datum.error.message;
+      const datum = await this.$store.dispatch<Action>({
+        type: ActionTypes.AddNewServer,
+        payload: this.isCloud
+          ? this.buildCloudServer()
+          : this.buildEmulatedServer()
+      });
+      this.loading = false;
+      if (datum.success) {
+        this.$router.push({
+          name: "home"
+        });
+      } else {
+        this.snackbar = true;
+        this.errorText = datum.error.message;
+      }
     }
   }
 }
