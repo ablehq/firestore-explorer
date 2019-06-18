@@ -47,7 +47,7 @@ export const mutations: MutationTree<ServersState> = {
       (server: Server) => server.id === payload.id
     );
     if (index >= 0) {
-      state.servers.splice(index, 0, payload);
+      state.servers[index] = payload;
     }
   }
 };

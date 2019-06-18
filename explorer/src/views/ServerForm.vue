@@ -11,8 +11,18 @@
         <v-flex xs12 md3>
           <v-form v-model="valid" ref="serverForm">
             <v-flex>
-              <v-radio-group row class="mt-0" v-model="serverType" :disabled="loading">
-                <v-radio label="Emulated" value="emulated" color="success" :disabled="loading"></v-radio>
+              <v-radio-group
+                row
+                class="mt-0"
+                v-model="serverType"
+                :disabled="loading"
+              >
+                <v-radio
+                  label="Emulated"
+                  value="emulated"
+                  color="success"
+                  :disabled="loading"
+                ></v-radio>
                 <v-radio label="Cloud" value="cloud" color="success"></v-radio>
               </v-radio-group>
             </v-flex>
@@ -46,6 +56,28 @@
                 outline
               ></v-text-field>
             </v-flex>
+            <v-combobox
+              :disabled="loading"
+              v-model="roots"
+              :items="roots"
+              label="Add Roots"
+              chips
+              solo
+              outline
+              multiple
+            >
+              <template v-slot:selection="data">
+                <v-chip
+                  :selected="data.selected"
+                  close
+                  class="my-2"
+                  @input="removeRoot(data.item)"
+                >
+                  <strong>{{ data.item }}</strong>
+                </v-chip>
+              </template>
+            </v-combobox>
+
             <v-flex v-if="isCloud">
               <v-text-field
                 v-model="apiKey"
@@ -91,7 +123,12 @@
               ></v-text-field>
             </v-flex>
             <v-layout align-center>
-              <v-chip :disabled="loading" small :color="serverColor" @click="changeServerColor"></v-chip>
+              <v-chip
+                :disabled="loading"
+                small
+                :color="serverColor"
+                @click="changeServerColor"
+              ></v-chip>
               <v-card flat class="caption">server color tag</v-card>
               <v-spacer></v-spacer>
               <v-btn
@@ -99,12 +136,15 @@
                 large
                 @click="createServer"
                 :loading="loading"
-              >{{ this.isInEditMode ? "Update" : "Create" }}</v-btn>
+                >{{ this.isInEditMode ? "Update" : "Create" }}</v-btn
+              >
             </v-layout>
           </v-form>
         </v-flex>
       </v-layout>
-      <v-snackbar v-model="snackbar" :timeout="3000" top vertical>{{ errorText }}</v-snackbar>
+      <v-snackbar v-model="snackbar" :timeout="3000" top vertical>{{
+        errorText
+      }}</v-snackbar>
     </v-container>
   </v-container>
 </template>
@@ -141,6 +181,7 @@ export default class NewServer extends Vue {
   snackbar: boolean = false;
   errorText: string = "";
   isInEditMode: boolean = false;
+  roots: Array<string> = [];
 
   created() {
     if (this.serverId) {
@@ -152,6 +193,7 @@ export default class NewServer extends Vue {
         this.projectId = server.projectId;
         this.serverType = server.type;
         this.serverColor = server.color;
+        this.roots = server.roots;
         switch (server.type) {
           case "emulated":
             break;
@@ -179,7 +221,7 @@ export default class NewServer extends Vue {
     return [
       (v: string) => !!v || `${name} is required`,
       (v: string) =>
-        (v && v.length >= 4) || `${name}  must be at least 4 characters`
+        (v && v.length >= 2) || `${name}  must be at least 4 characters`
     ];
   }
 
@@ -200,7 +242,8 @@ export default class NewServer extends Vue {
         this.name,
         this.serverColor,
         this.projectId,
-        this.appId
+        this.appId,
+        this.roots
       );
     } else {
       return GenerateEmulatedServer(
@@ -208,6 +251,7 @@ export default class NewServer extends Vue {
         this.serverColor,
         this.projectId,
         this.appId,
+        this.roots,
         this.serverId
       );
     }
@@ -224,7 +268,8 @@ export default class NewServer extends Vue {
         this.authDomain,
         this.databaseURL,
         this.storageBucket,
-        this.messagingSenderId
+        this.messagingSenderId,
+        this.roots
       );
     } else {
       return GenerateCloudServer(
@@ -237,9 +282,14 @@ export default class NewServer extends Vue {
         this.databaseURL,
         this.storageBucket,
         this.messagingSenderId,
+        this.roots,
         this.serverId
       );
     }
+  }
+
+  removeRoot(root: string) {
+    this.roots = this.roots.filter(item => item !== root);
   }
 
   async createServer() {

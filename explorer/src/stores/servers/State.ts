@@ -5,6 +5,7 @@ export interface BaseServer {
   readonly color: string;
   readonly projectId: string;
   readonly appId: string;
+  readonly roots: Array<string>;
 }
 
 export interface EmulatedServer extends BaseServer {
@@ -33,6 +34,7 @@ export const GenerateEmulatedServer = function(
   color: string,
   projectId: string,
   appId: string,
+  roots: Array<string> = [],
   id: string = "temp"
 ): EmulatedServer {
   return {
@@ -42,6 +44,7 @@ export const GenerateEmulatedServer = function(
     projectId,
     appId,
     color,
+    roots: roots,
     isEmulated: true
   };
 };
@@ -56,6 +59,7 @@ export const GenerateCloudServer = function(
   databaseURL: string,
   storageBucket: string,
   messagingSenderId: string,
+  roots: Array<string> = [],
   id: string = "temp"
 ): CloudServer {
   return {
@@ -70,6 +74,7 @@ export const GenerateCloudServer = function(
     authDomain,
     databaseURL,
     storageBucket,
-    messagingSenderId
+    messagingSenderId,
+    roots: roots
   };
 };

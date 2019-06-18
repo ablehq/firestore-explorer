@@ -15,14 +15,14 @@
               <v-card-title primary-title>
                 <v-layout row wrap justify-space-between>
                   <v-flex>
-                    <span class="title" :style="{ color: server.color }">{{
-                      server.name
-                    }}</span>
+                    <span class="title" :style="{ color: server.color }">
+                      {{ server.name }}
+                    </span>
                   </v-flex>
                   <v-flex shrink>
-                    <v-icon :color="server.color">{{
-                      server.type === "emulated" ? "adb" : "cloud"
-                    }}</v-icon>
+                    <v-icon :color="server.color">
+                      {{ server.type === "emulated" ? "adb" : "cloud" }}
+                    </v-icon>
                   </v-flex>
                 </v-layout>
               </v-card-title>
@@ -79,9 +79,9 @@
       </v-card>
     </v-dialog>
 
-    <v-snackbar v-model="snackbar" :timeout="3000" top vertical>
-      {{ errorText }}
-    </v-snackbar>
+    <v-snackbar v-model="snackbar" :timeout="3000" top vertical>{{
+      errorText
+    }}</v-snackbar>
   </v-container>
 </template>
 
