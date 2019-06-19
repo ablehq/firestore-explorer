@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "setup": "cd explorer && yarn && cd ../firebase-local && yarn && cd ../firebase-proxy && yarn",
-    "serve": "concurrently -k -p \"[{name}]\" -n \"webapp,frproxy,fremulator\" -c \"yellow.bold,cyan.bold,green.bold\" \"cd explorer && yarn serve\" \"cd firebase-proxy && yarn dev\" \"cd firebase-local && yarn firestore_start\""
+    "serve": "concurrently -k -p \"[{name}]\" -n \"webapp,frproxy\" -c \"yellow.bold,cyan.bold,green.bold\" \"cd explorer && yarn serve\" \"cd firebase-proxy && yarn dev\""
   },
   "repository": {
     "type": "git",

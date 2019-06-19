@@ -11,34 +11,63 @@
         }}</v-icon>
       </v-toolbar-title>
     </v-toolbar>
-    <v-container fluid grid-list-lg>
-      <v-layout column>
-        <v-flex xs12 md12>
-          <v-textarea
-            outline
-            name="input-7-4"
-            solo
-            persistent-hint
-            hint="Use `db` variable to reference your firestore db"
-            :value="query"
-          ></v-textarea>
-        </v-flex>
-      </v-layout>
-    </v-container>
+    <v-flex>
+      <monaco-editor
+        class="editor"
+        v-model="query"
+        :theme="editorTheme"
+        :options="editorOptions"
+        :language="editorLanguages"
+      ></monaco-editor>
+    </v-flex>
+    <v-flex>
+      <v-btn large @click.stop="executeQuery">
+        Run
+        <v-icon right>play_arrow</v-icon>
+      </v-btn>
+    </v-flex>
+
+    <prism language="json">{{ responseJson }}</prism>
   </v-container>
 </template>
 
 <script lang="ts">
+const axios = require("axios");
+import Prism from "vue-prism-component";
 import Vue from "vue";
 import Component from "vue-class-component";
 import { Prop } from "vue-property-decorator";
 import { Server } from "../stores/servers/State";
-@Component({})
+import MonacoEditor from "vue-monaco";
+@Component({
+  components: {
+    MonacoEditor,
+    Prism
+  }
+})
 export default class ExploreApp extends Vue {
   @Prop(String) readonly serverId!: string;
   server!: Server;
   isServerAvailable = false;
   query: string = "";
+  editorOptions = {
+    minimap: {
+      enabled: false
+    },
+    lineNumbers: true
+  };
+  editorLanguages = "javascript";
+  responseLanguage = "json";
+  responseJson = {
+    hello: "world"
+  };
+  responseRendererOptions = {
+    readOnly: true,
+    minimap: {
+      enabled: false
+    },
+    lineNumbers: true
+  };
 
   created() {
     const servers = this.$store.getters.servers as Array<Server>;
@@ -58,10 +87,33 @@ export default class ExploreApp extends Vue {
     return this.server.name;
   }
 
-  exploreCollection(root: string) {
-    console.log(`Explore collection ${root}`);
+  get editorTheme(): string {
+    return this.$store.getters.isThemeDark ? "vs-dark" : "vs";
+  }
+
+  async executeQuery() {
+    const responseData = await axios({
+      method: "post",
+      url: "http://localhost:7000/command",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json"
+      },
+      data: {
+        name: "query",
+        payload: {
+          server: this.server,
+          query: this.query
+        }
+      }
+    }).then((resp: any) => resp.data);
+    this.responseJson = responseData;
   }
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+.editor {
+  height: 200px;
+}
+</style>

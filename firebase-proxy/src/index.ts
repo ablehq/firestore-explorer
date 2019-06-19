@@ -1,8 +1,10 @@
 import express, { Response, Request, NextFunction } from "express";
 var bodyParser = require("body-parser");
+var cors = require("cors");
 import * as commandsController from "./controllers/commands";
 
 const app = express();
+app.use(cors());
 app.use(bodyParser.json({ type: "application/json" }));
 
 app.set("port", process.env.PORT || 7000);

@@ -4,6 +4,11 @@ import App from "./App.vue";
 import router from "./router";
 import store from "./stores";
 import "./registerServiceWorker";
+import "prismjs";
+import "prismjs/themes/prism.css";
+import "prismjs/components/prism-json.min.js";
+import Prism from "prismjs";
+Prism.highlightAll();
 
 Vue.config.productionTip = false;
 

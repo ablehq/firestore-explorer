@@ -12,8 +12,10 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 var bodyParser = require("body-parser");
+var cors = require("cors");
 const commandsController = __importStar(require("./controllers/commands"));
 const app = express_1.default();
+app.use(cors());
 app.use(bodyParser.json({ type: "application/json" }));
 app.set("port", process.env.PORT || 7000);
 app.post("/command", commandsController.commandsHandler);
