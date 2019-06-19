@@ -1,7 +1,12 @@
 import { ActionPayload, ActionTree } from "vuex";
 import { ServersState, Server } from "./State";
 import { RootState, MutationTypes, Mutation } from "..";
-import apiServer from "../ApiServer";
+import {
+  addNewServer,
+  fetchAllServers,
+  updateServer,
+  deleteServer
+} from "../../db";
 export enum ActionTypes {
   FetchServers = "FetchServers",
   AddNewServer = "AddNewServer",
@@ -36,9 +41,8 @@ export const actions: ActionTree<ServersState, RootState> = {
     { payload: { id, ...rest } }: AddNewServerAction
   ) {
     try {
-      const server: Server = await apiServer
-        .post("/servers", rest)
-        .then(resp => resp.data);
+      const server: Server = addNewServer(rest);
+      console.log(`Server is ${server}`);
       context.commit<Mutation>({
         type: MutationTypes.AddNewServer,
         payload: server
@@ -55,15 +59,13 @@ export const actions: ActionTree<ServersState, RootState> = {
   },
   async [ActionTypes.EditServer](
     context,
-    { payload: { id, ...rest } }: EditServerAction
+    { payload: server }: EditServerAction
   ) {
     try {
-      const server: Server = await apiServer
-        .put(`/servers/${id}`, rest)
-        .then(resp => resp.data);
+      const updatedServer: Server = updateServer(server);
       context.commit<Mutation>({
         type: MutationTypes.EditServer,
-        payload: server
+        payload: updatedServer
       });
       return {
         success: true
@@ -77,9 +79,7 @@ export const actions: ActionTree<ServersState, RootState> = {
   },
   async [ActionTypes.FetchServers](context) {
     try {
-      const servers: Array<Server> = await apiServer
-        .get("/servers")
-        .then(resp => resp.data);
+      const servers: Array<Server> = fetchAllServers();
       context.commit<Mutation>({
         type: MutationTypes.SetServers,
         payload: servers
@@ -96,9 +96,7 @@ export const actions: ActionTree<ServersState, RootState> = {
   },
   async [ActionTypes.DeleteServer](context, { payload }: DeleteServerAction) {
     try {
-      await apiServer
-        .delete(`/servers/${payload.serverId}`)
-        .then(resp => resp.data);
+      deleteServer(payload.serverId);
       context.commit<Mutation>({
         type: MutationTypes.DeleteServer,
         payload
