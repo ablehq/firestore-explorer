@@ -2,14 +2,15 @@
   "servers": [
     {
       "type": "emulated",
-      "name": "asdasdasd",
+      "name": "Local Test Firebase Server",
       "projectId": "firebase-explorer-test",
       "appId": "app-1560849552853-0.6844697257009442",
       "color": "#378e23",
       "roots": [
         "movies",
+        "ratings",
         "tags",
-        "ratings"
+        "users"
       ],
       "isEmulated": true,
       "id": 1

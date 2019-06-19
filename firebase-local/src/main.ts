@@ -14,9 +14,9 @@ function authedApp(auth: FirebaseAuth, projectId: string) {
 const firebaseApp = authedApp(
   {
     uid: "firebase-explorer",
-    name: "Firebase Explorer"
+    name: "Firebase Explorer",
   },
-  projectId
+  projectId,
 );
 console.log(`Project Id: ${projectId}`);
 console.log(`App Id: ${firebaseApp.app.name}`);

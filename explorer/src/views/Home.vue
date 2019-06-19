@@ -15,14 +15,10 @@
               <v-card-title primary-title>
                 <v-layout row wrap justify-space-between>
                   <v-flex>
-                    <span class="title" :style="{ color: server.color }">
-                      {{ server.name }}
-                    </span>
+                    <span class="title" :style="{ color: server.color }">{{ server.name }}</span>
                   </v-flex>
                   <v-flex shrink>
-                    <v-icon :color="server.color">
-                      {{ server.type === "emulated" ? "adb" : "cloud" }}
-                    </v-icon>
+                    <v-icon :color="server.color">{{ server.type === "emulated" ? "adb" : "cloud" }}</v-icon>
                   </v-flex>
                 </v-layout>
               </v-card-title>
@@ -31,26 +27,14 @@
               </v-card-text>
               <v-divider></v-divider>
               <v-card-actions>
-                <v-btn
-                  flat
-                  small
-                  icon
-                  color="grey darken-2"
-                  @click.stop="showDialog(server)"
-                >
+                <v-btn flat small icon color="grey darken-2" @click.stop="showDialog(server)">
                   <v-icon>delete</v-icon>
                 </v-btn>
-                <v-btn
-                  flat
-                  small
-                  icon
-                  color="grey darken-2"
-                  @click.stop="editServer(server)"
-                >
+                <v-btn flat small icon color="grey darken-2" @click.stop="editServer(server)">
                   <v-icon>edit</v-icon>
                 </v-btn>
                 <v-spacer></v-spacer>
-                <v-btn flat small>
+                <v-btn flat small @click.stop="exploreServer(server)">
                   Explore
                   <v-icon right>arrow_right_alt</v-icon>
                 </v-btn>
@@ -62,9 +46,7 @@
     </v-flex>
     <v-dialog v-model="dialog" max-width="290">
       <v-card>
-        <v-card-title class="headline"
-          >Delete {{ serverToBeDeleted.name }}</v-card-title
-        >
+        <v-card-title class="headline">Delete {{ serverToBeDeleted.name }}</v-card-title>
 
         <v-card-text>
           Do you want to permanently delete server
@@ -79,9 +61,11 @@
       </v-card>
     </v-dialog>
 
-    <v-snackbar v-model="snackbar" :timeout="3000" top vertical>{{
+    <v-snackbar v-model="snackbar" :timeout="3000" top vertical>
+      {{
       errorText
-    }}</v-snackbar>
+      }}
+    </v-snackbar>
   </v-container>
 </template>
 
@@ -140,6 +124,15 @@ export default class Home extends Vue {
   editServer(server: Server) {
     this.$router.push({
       name: "edit-server",
+      params: {
+        serverId: `${server.id}`
+      }
+    });
+  }
+
+  exploreServer(server: Server) {
+    this.$router.push({
+      name: "explore-server",
       params: {
         serverId: `${server.id}`
       }
