@@ -11,30 +11,20 @@
         }}</v-icon>
       </v-toolbar-title>
     </v-toolbar>
-    <v-flex>
-      <v-container fluid grid-list-lg>
-        <v-layout row wrap>
-          <v-flex xs12 md4 v-for="root in server.roots" :key="root">
-            <v-card>
-              <v-card-title primary-title>
-                <span class="title">{{ root }}</span>
-              </v-card-title>
-              <v-card-text>
-                <p>Details of root go here</p>
-              </v-card-text>
-              <v-divider></v-divider>
-              <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn flat small @click.stop="exploreCollection(root)">
-                  Explore
-                  <v-icon right>arrow_right_alt</v-icon>
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-flex>
-        </v-layout>
-      </v-container>
-    </v-flex>
+    <v-container fluid grid-list-lg>
+      <v-layout column>
+        <v-flex xs12 md12>
+          <v-textarea
+            outline
+            name="input-7-4"
+            solo
+            persistent-hint
+            hint="Use `db` variable to reference your firestore db"
+            :value="query"
+          ></v-textarea>
+        </v-flex>
+      </v-layout>
+    </v-container>
   </v-container>
 </template>
 
@@ -48,6 +38,7 @@ export default class ExploreApp extends Vue {
   @Prop(String) readonly serverId!: string;
   server!: Server;
   isServerAvailable = false;
+  query: string = "";
 
   created() {
     const servers = this.$store.getters.servers as Array<Server>;

@@ -25,19 +25,21 @@ export interface CloudServer extends BaseServer {
 export type Server = EmulatedServer | CloudServer;
 
 const enum CommandNames {
-  EXPLORE_APP = "explore_app",
+  QUERY = "query",
 }
 
-interface ExploreAppCommand {
-  name: CommandNames.EXPLORE_APP;
-  payload: Server;
+interface Query {
+  name: CommandNames.QUERY;
+  payload: {
+    server: Server;
+    query: string;
+  };
 }
 
-type Command = ExploreAppCommand;
+type Command = Query;
 
-const handleExploreApp = async (server: Server) => {
+const handleQuery = async ({ payload: { server, query } }: Query) => {
   let data: { [key: string]: any } = {};
-  let rootsData: Array<{ [key: string]: any }> = [];
   switch (server.type) {
     case "emulated":
       const app = firebaseEmulated.initializeAdminApp({
@@ -45,29 +47,36 @@ const handleExploreApp = async (server: Server) => {
         projectId: server.projectId,
       });
       if (app) {
-        const promises = server.roots.map(root => {
-          return app
-            .firestore()
-            .collection(root)
-            .get()
-            .then(data => ({
-              root,
-              data,
-            }));
-        });
+        const db = app.firestore();
         try {
-          const snapshots = await Promise.all(promises);
+          const result = await eval(query);
+          let datum = {};
+          switch (result.constructor.name) {
+            case "DocumentSnapshot":
+              datum = {
+                docId: result.id,
+                data: result.data(),
+              };
+              break;
+            case "QuerySnapshot":
+              datum = result.docs.map((item: any) => {
+                return {
+                  docId: item.id,
+                  data: item.data(),
+                };
+              });
+              break;
+          }
           data["success"] = true;
-          data["data"] = snapshots.map(item => ({
-            root: item.root,
-            size: item.data.size,
-          }));
+          data["data"] = datum;
         } catch (error) {
           data["success"] = false;
-          data["error"] = error;
+          data["error"] = `${error}`;
         }
       }
+      break;
     case "cloud":
+      break;
     default:
       break;
   }
@@ -78,8 +87,8 @@ export let commandsHandler = async (req: Request, res: Response) => {
   const body: Command = req.body;
   let data = {};
   switch (body.name) {
-    case CommandNames.EXPLORE_APP:
-      data = await handleExploreApp(body.payload);
+    case CommandNames.QUERY:
+      data = await handleQuery(body);
       break;
 
     default:

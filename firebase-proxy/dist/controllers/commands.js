@@ -16,9 +16,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const firebaseEmulated = __importStar(require("@firebase/testing"));
-const handleExploreApp = (server) => __awaiter(this, void 0, void 0, function* () {
+const handleQuery = ({ payload: { server, query } }) => __awaiter(this, void 0, void 0, function* () {
     let data = {};
-    let rootsData = [];
     switch (server.type) {
         case "emulated":
             const app = firebaseEmulated.initializeAdminApp({
@@ -26,30 +25,37 @@ const handleExploreApp = (server) => __awaiter(this, void 0, void 0, function* (
                 projectId: server.projectId,
             });
             if (app) {
-                const promises = server.roots.map(root => {
-                    return app
-                        .firestore()
-                        .collection(root)
-                        .get()
-                        .then(data => ({
-                        root,
-                        data,
-                    }));
-                });
+                const db = app.firestore();
                 try {
-                    const snapshots = yield Promise.all(promises);
+                    const result = yield eval(query);
+                    let datum = {};
+                    switch (result.constructor.name) {
+                        case "DocumentSnapshot":
+                            datum = {
+                                docId: result.id,
+                                data: result.data(),
+                            };
+                            break;
+                        case "QuerySnapshot":
+                            datum = result.docs.map((item) => {
+                                return {
+                                    docId: item.id,
+                                    data: item.data(),
+                                };
+                            });
+                            break;
+                    }
                     data["success"] = true;
-                    data["data"] = snapshots.map(item => ({
-                        root: item.root,
-                        size: item.data.size,
-                    }));
+                    data["data"] = datum;
                 }
                 catch (error) {
                     data["success"] = false;
-                    data["error"] = error;
+                    data["error"] = `${error}`;
                 }
             }
+            break;
         case "cloud":
+            break;
         default:
             break;
     }
@@ -59,8 +65,8 @@ exports.commandsHandler = (req, res) => __awaiter(this, void 0, void 0, function
     const body = req.body;
     let data = {};
     switch (body.name) {
-        case "explore_app" /* EXPLORE_APP */:
-            data = yield handleExploreApp(body.payload);
+        case "query" /* QUERY */:
+            data = yield handleQuery(body);
             break;
         default:
             break;

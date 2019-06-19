@@ -1,0 +1,24 @@
+{
+  "name": "firestore-explorer",
+  "version": "1.0.0",
+  "description": "Web based admin UI to explore cloud firestore",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "setup": "cd explorer && yarn && cd ../firebase-local && yarn && cd ../firebase-proxy && yarn",
+    "serve": "concurrently -k -p \"[{name}]\" -n \"webapp,frproxy,fremulator\" -c \"yellow.bold,cyan.bold,green.bold\" \"cd explorer && yarn serve\" \"cd firebase-proxy && yarn dev\" \"cd firebase-local && yarn firestore_start\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@gitlab.com/madhu314/firestore-explorer.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/madhu314/firestore-explorer/issues"
+  },
+  "homepage": "https://gitlab.com/madhu314/firestore-explorer#readme",
+  "dependencies": {
+    "concurrently": "^4.1.0"
+  }
+}
