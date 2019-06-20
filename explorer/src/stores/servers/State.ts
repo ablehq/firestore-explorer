@@ -3,23 +3,19 @@ export interface BaseServer {
   readonly type: "emulated" | "cloud";
   readonly name: string;
   readonly color: string;
-  readonly projectId: string;
-  readonly appId: string;
   readonly roots: Array<string>;
 }
 
 export interface EmulatedServer extends BaseServer {
   readonly type: "emulated";
   readonly isEmulated: boolean;
+  readonly projectId: string;
+  readonly appId: string;
 }
 
 export interface CloudServer extends BaseServer {
   readonly type: "cloud";
-  readonly apiKey: string;
-  readonly authDomain: string;
-  readonly databaseURL: string;
-  readonly storageBucket: string;
-  readonly messagingSenderId: string;
+  readonly config: object;
   readonly isCloud: boolean;
 }
 
@@ -52,13 +48,7 @@ export const GenerateEmulatedServer = function(
 export const GenerateCloudServer = function(
   name: string,
   color: string,
-  projectId: string,
-  appId: string,
-  apiKey: string,
-  authDomain: string,
-  databaseURL: string,
-  storageBucket: string,
-  messagingSenderId: string,
+  config: object,
   roots: Array<string> = [],
   id: string = "temp"
 ): CloudServer {
@@ -66,15 +56,9 @@ export const GenerateCloudServer = function(
     id: id,
     type: "cloud",
     name,
-    projectId,
-    appId,
     color,
+    config,
     isCloud: true,
-    apiKey,
-    authDomain,
-    databaseURL,
-    storageBucket,
-    messagingSenderId,
     roots: roots
   };
 };

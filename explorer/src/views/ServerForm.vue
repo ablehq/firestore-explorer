@@ -36,7 +36,7 @@
                 outline
               ></v-text-field>
             </v-flex>
-            <v-flex>
+            <v-flex v-if="!isCloud">
               <v-text-field
                 required
                 :disabled="loading"
@@ -46,7 +46,7 @@
                 outline
               ></v-text-field>
             </v-flex>
-            <v-flex>
+            <v-flex v-if="!isCloud">
               <v-text-field
                 required
                 :disabled="loading"
@@ -80,45 +80,11 @@
 
             <v-flex v-if="isCloud">
               <v-text-field
-                v-model="apiKey"
+                v-model="config"
                 :disabled="loading"
-                :rules="generalStringRules('Api Key')"
-                label="Api Key"
-                outline
-              ></v-text-field>
-            </v-flex>
-            <v-flex v-if="isCloud">
-              <v-text-field
-                v-model="authDomain"
-                :disabled="loading"
-                :rules="generalStringRules('Auth Domain')"
-                label="Auth Domain"
-                outline
-              ></v-text-field>
-            </v-flex>
-            <v-flex v-if="isCloud">
-              <v-text-field
-                v-model="databaseURL"
-                :rules="generalStringRules('Database URL')"
-                label="Database URL"
-                outline
-              ></v-text-field>
-            </v-flex>
-            <v-flex v-if="isCloud">
-              <v-text-field
-                v-model="storageBucket"
-                :disabled="loading"
-                :rules="generalStringRules('Storage Bucket')"
-                label="Storage Bucket"
-                outline
-              ></v-text-field>
-            </v-flex>
-            <v-flex v-if="isCloud">
-              <v-text-field
-                v-model="messagingSenderId"
-                :rules="generalStringRules('Messaging SenderId')"
-                label="Messaging SenderId"
-                :disabled="loading"
+                :rules="validateConfig()"
+                label="Config JSON"
+                key="config"
                 outline
               ></v-text-field>
             </v-flex>
@@ -160,6 +126,7 @@ import {
   GenerateCloudServer
 } from "../stores/servers/State";
 import { Prop } from "vue-property-decorator";
+import { Object } from "lodash";
 @Component({})
 export default class NewServer extends Vue {
   @Prop(String) readonly serverId!: string;
@@ -172,11 +139,7 @@ export default class NewServer extends Vue {
     luminosity: "random",
     hue: "random"
   }) as string;
-  apiKey: string = "";
-  authDomain: string = "";
-  databaseURL: string = "";
-  storageBucket: string = "";
-  messagingSenderId: string = "";
+  config: string = "";
   loading: boolean = false;
   snackbar: boolean = false;
   errorText: string = "";
@@ -189,20 +152,16 @@ export default class NewServer extends Vue {
       const server = servers.find(item => `${item.id}` === this.serverId);
       if (server) {
         this.name = server.name;
-        this.appId = server.appId;
-        this.projectId = server.projectId;
         this.serverType = server.type;
         this.serverColor = server.color;
         this.roots = server.roots;
         switch (server.type) {
           case "emulated":
+            this.appId = server.appId;
+            this.projectId = server.projectId;
             break;
           case "cloud":
-            this.apiKey = server.apiKey;
-            this.authDomain = server.authDomain;
-            this.databaseURL = server.databaseURL;
-            this.storageBucket = server.storageBucket;
-            this.messagingSenderId = server.messagingSenderId;
+            this.config = JSON.stringify(server.config);
             break;
         }
       }
@@ -221,7 +180,24 @@ export default class NewServer extends Vue {
     return [
       (v: string) => !!v || `${name} is required`,
       (v: string) =>
-        (v && v.length >= 2) || `${name}  must be at least 4 characters`
+        (v && v.length >= 2) || `${name}  must be at least 2 characters`
+    ];
+  }
+
+  validateConfig() {
+    return [
+      (v: string) => !!v || "Config is required",
+      (v: string) => {
+        try {
+          let parsed = JSON.parse(v);
+          if (JSON.stringify(parsed) === "{}") {
+            return "Config cannot be empty object";
+          }
+          return true;
+        } catch (error) {
+          return "Config does not seem to be valid";
+        }
+      }
     ];
   }
 
@@ -262,26 +238,14 @@ export default class NewServer extends Vue {
       return GenerateCloudServer(
         this.name,
         this.serverColor,
-        this.projectId,
-        this.appId,
-        this.apiKey,
-        this.authDomain,
-        this.databaseURL,
-        this.storageBucket,
-        this.messagingSenderId,
+        JSON.parse(this.config),
         this.roots
       );
     } else {
       return GenerateCloudServer(
         this.name,
         this.serverColor,
-        this.projectId,
-        this.appId,
-        this.apiKey,
-        this.authDomain,
-        this.databaseURL,
-        this.storageBucket,
-        this.messagingSenderId,
+        JSON.parse(this.config),
         this.roots,
         this.serverId
       );

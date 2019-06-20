@@ -27,13 +27,12 @@
       </v-btn>
     </v-flex>
 
-    <prism language="json">{{ responseJson }}</prism>
+    <pre><code>{{ responseJson }}</code></pre>
   </v-container>
 </template>
 
 <script lang="ts">
 const axios = require("axios");
-import Prism from "vue-prism-component";
 import Vue from "vue";
 import Component from "vue-class-component";
 import { Prop } from "vue-property-decorator";
@@ -41,8 +40,7 @@ import { Server } from "../stores/servers/State";
 import MonacoEditor from "vue-monaco";
 @Component({
   components: {
-    MonacoEditor,
-    Prism
+    MonacoEditor
   }
 })
 export default class ExploreApp extends Vue {

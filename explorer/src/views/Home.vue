@@ -15,23 +15,49 @@
               <v-card-title primary-title>
                 <v-layout row wrap justify-space-between>
                   <v-flex>
-                    <span class="title" :style="{ color: server.color }">{{ server.name }}</span>
+                    <span class="title" :style="{ color: server.color }">
+                      {{ server.name }}
+                    </span>
                   </v-flex>
                   <v-flex shrink>
-                    <v-icon :color="server.color">{{ server.type === "emulated" ? "adb" : "cloud" }}</v-icon>
+                    <v-icon :color="server.color">
+                      {{ server.type === "emulated" ? "adb" : "cloud" }}
+                    </v-icon>
                   </v-flex>
                 </v-layout>
               </v-card-title>
               <v-card-text>
-                <code>{{ server }}</code>
+                <code>{{ readableConfig(server) }}</code>
               </v-card-text>
               <v-divider></v-divider>
               <v-card-actions>
-                <v-btn flat small icon color="grey darken-2" @click.stop="showDialog(server)">
+                <v-btn
+                  flat
+                  small
+                  icon
+                  color="grey darken-2"
+                  @click.stop="showDeleteDialog(server)"
+                >
                   <v-icon>delete</v-icon>
                 </v-btn>
-                <v-btn flat small icon color="grey darken-2" @click.stop="editServer(server)">
+                <v-btn
+                  flat
+                  small
+                  icon
+                  color="grey darken-2"
+                  @click.stop="editServer(server)"
+                >
                   <v-icon>edit</v-icon>
+                </v-btn>
+                <v-btn
+                  v-if="server.isCloud"
+                  flat
+                  small
+                  icon
+                  color="grey darken-2"
+                  @click.stop="showServerConfigDialog(server)"
+                >
+                  <v-icon>code</v-icon>
                 </v-btn>
                 <v-spacer></v-spacer>
                 <v-btn flat small @click.stop="exploreServer(server)">
@@ -44,9 +70,11 @@
         </v-layout>
       </v-container>
     </v-flex>
-    <v-dialog v-model="dialog" max-width="290">
+    <v-dialog v-model="deleteDialog" max-width="290">
       <v-card>
-        <v-card-title class="headline">Delete {{ serverToBeDeleted.name }}</v-card-title>
+        <v-card-title class="headline"
+          >Delete {{ serverToBeDeleted.name }}</v-card-title
+        >
 
         <v-card-text>
           Do you want to permanently delete server
@@ -54,18 +82,33 @@
         </v-card-text>
 
         <v-card-actions>
-          <v-btn flat @click="cancelDialog">Cancel</v-btn>
+          <v-btn flat @click="cancelDeleteDialog">Cancel</v-btn>
           <v-spacer></v-spacer>
           <v-btn flat color="red darken-1" @click="deleteServer">Delete</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
-    <v-snackbar v-model="snackbar" :timeout="3000" top vertical>
-      {{
+    <v-dialog v-model="configDialog">
+      <v-card>
+        <v-card-title class="headline">
+          {{ serverToBeShownConfig.name }}
+        </v-card-title>
+
+        <v-card-text v-if="configDialog">
+          <code>{{ serverToBeShownConfig.config }}</code>
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn flat @click="cancelConfigDialog">OK</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-snackbar v-model="snackbar" :timeout="3000" top vertical>{{
       errorText
-      }}
-    </v-snackbar>
+    }}</v-snackbar>
   </v-container>
 </template>
 
@@ -78,8 +121,10 @@ import { Action, ActionTypes } from "../stores";
   components: {}
 })
 export default class Home extends Vue {
-  dialog: boolean = false;
+  deleteDialog: boolean = false;
   serverToDelete: Server | {} = {};
+  configDialog: boolean = false;
+  serverToShowConfig: Server | {} = {};
   snackbar: boolean = false;
   errorText: string = "";
 
@@ -94,21 +139,42 @@ export default class Home extends Vue {
     return this.$store.getters.servers;
   }
 
-  showDialog(server: Server) {
-    this.dialog = true;
+  showDeleteDialog(server: Server) {
+    this.deleteDialog = true;
     this.serverToDelete = server;
   }
 
-  cancelDialog() {
-    this.dialog = false;
+  showServerConfigDialog(server: Server) {
+    this.configDialog = true;
+    this.serverToShowConfig = server;
+  }
+
+  cancelDeleteDialog() {
+    this.deleteDialog = false;
+  }
+
+  cancelConfigDialog() {
+    this.configDialog = false;
   }
 
   get serverToBeDeleted() {
     return this.serverToDelete || {};
   }
 
+  get serverToBeShownConfig() {
+    return this.serverToShowConfig || {};
+  }
+
+  readableConfig(server: Server) {
+    if (server.type === "emulated") {
+      return server;
+    }
+    const { config, ...rest } = server;
+    return rest;
+  }
+
   async deleteServer() {
-    this.dialog = false;
+    this.deleteDialog = false;
     const datum = await this.$store.dispatch<Action>({
       type: ActionTypes.DeleteServer,
       payload: {
