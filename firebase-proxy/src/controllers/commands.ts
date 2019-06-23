@@ -1,78 +1,37 @@
 import { Response, Request } from "express";
-import * as firebaseEmulated from "@firebase/testing";
-export interface BaseServer {
-  readonly type: "emulated" | "cloud";
-  readonly projectId: string;
-  readonly appId: string;
-  readonly roots: Array<string>;
-}
-
-export interface EmulatedServer extends BaseServer {
-  readonly type: "emulated";
-  readonly isEmulated: boolean;
-}
-
-export interface CloudServer extends BaseServer {
-  readonly type: "cloud";
-  readonly apiKey: string;
-  readonly authDomain: string;
-  readonly databaseURL: string;
-  readonly storageBucket: string;
-  readonly messagingSenderId: string;
-  readonly isCloud: boolean;
-}
-
-export type Server = EmulatedServer | CloudServer;
-
-const enum CommandNames {
-  QUERY = "query",
-}
-
-interface Query {
-  name: CommandNames.QUERY;
-  payload: {
-    server: Server;
-    query: string;
-  };
-}
-
-type Command = Query;
+import { Query, Command, CommandNames } from "../models/Commands";
+import { handleLocalQuery } from "./LocalHelper";
+import { generateFirestoreEmulatedInstance } from "../models/FirebaseProxy";
 
 const handleQuery = async ({ payload: { server, query } }: Query) => {
   let data: { [key: string]: any } = {};
   switch (server.type) {
     case "emulated":
-      const app = firebaseEmulated.initializeAdminApp({
-        databaseName: server.appId,
-        projectId: server.projectId,
-      });
-      if (app) {
-        const db = app.firestore();
-        try {
-          const result = await eval(query);
-          let datum = {};
-          switch (result.constructor.name) {
-            case "DocumentSnapshot":
-              datum = {
-                docId: result.id,
-                data: result.data(),
+      const db = generateFirestoreEmulatedInstance(server.projectId);
+      try {
+        const result = await eval(query);
+        let datum = {};
+        switch (result.constructor.name) {
+          case "DocumentSnapshot":
+            datum = {
+              docId: result.id,
+              data: result.data()
+            };
+            break;
+          case "QuerySnapshot":
+            datum = result.docs.map((item: any) => {
+              return {
+                docId: item.id,
+                data: item.data()
               };
-              break;
-            case "QuerySnapshot":
-              datum = result.docs.map((item: any) => {
-                return {
-                  docId: item.id,
-                  data: item.data(),
-                };
-              });
-              break;
-          }
-          data["success"] = true;
-          data["data"] = datum;
-        } catch (error) {
-          data["success"] = false;
-          data["error"] = `${error}`;
+            });
+            break;
         }
+        data["success"] = true;
+        data["data"] = datum;
+      } catch (error) {
+        data["success"] = false;
+        data["error"] = `${error}`;
       }
       break;
     case "cloud":
@@ -90,7 +49,9 @@ export let commandsHandler = async (req: Request, res: Response) => {
     case CommandNames.QUERY:
       data = await handleQuery(body);
       break;
-
+    case CommandNames.LOCAL:
+      data = await handleLocalQuery(body);
+      break;
     default:
       break;
   }

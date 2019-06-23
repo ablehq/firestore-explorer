@@ -13,7 +13,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 var bodyParser = require("body-parser");
 var cors = require("cors");
-const commandsController = __importStar(require("./controllers/commands"));
+const commandsController = __importStar(require("./controllers/Commands"));
 const app = express_1.default();
 app.use(cors());
 app.use(bodyParser.json({ type: "application/json" }));

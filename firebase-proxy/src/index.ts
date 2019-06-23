@@ -1,7 +1,7 @@
 import express, { Response, Request, NextFunction } from "express";
 var bodyParser = require("body-parser");
 var cors = require("cors");
-import * as commandsController from "./controllers/commands";
+import * as commandsController from "./controllers/Commands";
 
 const app = express();
 app.use(cors());
@@ -13,7 +13,7 @@ app.listen(app.get("port"), () => {
   console.log(
     "  App is running at http://localhost:%d in %s mode",
     app.get("port"),
-    app.get("env"),
+    app.get("env")
   );
   console.log("  Press CTRL-C to stop\n");
 });
