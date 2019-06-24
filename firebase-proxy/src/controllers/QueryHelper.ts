@@ -1,28 +1,28 @@
-import { Response, Request } from "express";
-import { Query, Command, CommandNames } from "../models/Commands";
-import { handleLocalQuery } from "./LocalHelper";
+import { Query } from "../models/Commands";
 import { generateFirestoreEmulatedInstance } from "../models/FirebaseProxy";
 
-const handleQuery = async ({ payload: { server, query } }: Query) => {
+export const handleQuery = async ({ payload: { server, query } }: Query) => {
   let data: { [key: string]: any } = {};
   switch (server.type) {
     case "emulated":
       const db = generateFirestoreEmulatedInstance(server.projectId);
       try {
         const result = await eval(query);
+        console.log(result);
         let datum = {};
         switch (result.constructor.name) {
           case "DocumentSnapshot":
             datum = {
               docId: result.id,
-              data: result.data()
+              data: result.data(),
             };
             break;
           case "QuerySnapshot":
             datum = result.docs.map((item: any) => {
               return {
-                docId: item.id,
-                data: item.data()
+                id: item.id,
+                path: item.path,
+                data: item.data(),
               };
             });
             break;
@@ -40,20 +40,4 @@ const handleQuery = async ({ payload: { server, query } }: Query) => {
       break;
   }
   return data;
-};
-
-export let commandsHandler = async (req: Request, res: Response) => {
-  const body: Command = req.body;
-  let data = {};
-  switch (body.name) {
-    case CommandNames.QUERY:
-      data = await handleQuery(body);
-      break;
-    case CommandNames.LOCAL:
-      data = await handleLocalQuery(body);
-      break;
-    default:
-      break;
-  }
-  res.json(data);
 };

@@ -31,22 +31,10 @@
               </v-card-text>
               <v-divider></v-divider>
               <v-card-actions>
-                <v-btn
-                  flat
-                  small
-                  icon
-                  color="grey darken-2"
-                  @click.stop="showDeleteDialog(server)"
-                >
+                <v-btn flat small icon @click.stop="showDeleteDialog(server)">
                   <v-icon>delete</v-icon>
                 </v-btn>
-                <v-btn
-                  flat
-                  small
-                  icon
-                  color="grey darken-2"
-                  @click.stop="editServer(server)"
-                >
+                <v-btn flat small icon @click.stop="editServer(server)">
                   <v-icon>edit</v-icon>
                 </v-btn>
                 <v-btn
@@ -54,10 +42,12 @@
                   flat
                   small
                   icon
-                  color="grey darken-2"
                   @click.stop="showServerConfigDialog(server)"
                 >
                   <v-icon>code</v-icon>
+                </v-btn>
+                <v-btn flat small icon @click.stop="showQueryConsole(server)">
+                  <v-icon>video_label</v-icon>
                 </v-btn>
                 <v-spacer></v-spacer>
                 <v-btn flat small @click.stop="exploreServer(server)">
@@ -197,6 +187,15 @@ export default class Home extends Vue {
   }
 
   exploreServer(server: Server) {
+    this.$router.push({
+      name: "list-root-collections",
+      params: {
+        serverId: `${server.id}`
+      }
+    });
+  }
+
+  showQueryConsole(server: Server) {
     this.$router.push({
       name: "explore-server",
       params: {

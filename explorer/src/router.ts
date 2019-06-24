@@ -4,6 +4,7 @@ import Home from "./views/Home.vue";
 import store, { Action, ActionTypes } from "./stores/index";
 import ServerForm from "./views/ServerForm.vue";
 import ExploreServer from "./views/ExploreServer.vue";
+import ListRootCollections from "./views/ListRootCollections.vue";
 Vue.use(Router);
 
 const router = new Router({
@@ -29,6 +30,12 @@ const router = new Router({
       name: "explore-server",
       props: true,
       component: ExploreServer
+    },
+    {
+      path: "/servers/roots/:serverId",
+      name: "list-root-collections",
+      props: true,
+      component: ListRootCollections
     }
   ]
 });

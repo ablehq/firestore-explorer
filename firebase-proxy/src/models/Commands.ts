@@ -2,7 +2,8 @@ import { Server } from "./Server";
 
 export const enum CommandNames {
   QUERY = "query",
-  LOCAL = "local"
+  LOCAL = "local",
+  LIST_ROOTS = "list_roots",
 }
 
 export interface Query {
@@ -15,6 +16,14 @@ export interface Query {
 
 export interface LocalQuery {
   name: CommandNames.LOCAL;
+  payload: {};
 }
 
-export type Command = Query | LocalQuery;
+export interface ListRoots {
+  name: CommandNames.LIST_ROOTS;
+  payload: {
+    server: Server;
+  };
+}
+
+export type Command = Query | LocalQuery | ListRoots;

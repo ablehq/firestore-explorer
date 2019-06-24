@@ -3,7 +3,6 @@ export interface BaseServer {
   readonly type: "emulated" | "cloud";
   readonly name: string;
   readonly color: string;
-  readonly roots: Array<string>;
 }
 
 export interface EmulatedServer extends BaseServer {
@@ -30,7 +29,6 @@ export const GenerateEmulatedServer = function(
   color: string,
   projectId: string,
   appId: string,
-  roots: Array<string> = [],
   id: string = "temp"
 ): EmulatedServer {
   return {
@@ -40,7 +38,6 @@ export const GenerateEmulatedServer = function(
     projectId,
     appId,
     color,
-    roots: roots,
     isEmulated: true
   };
 };
@@ -49,7 +46,6 @@ export const GenerateCloudServer = function(
   name: string,
   color: string,
   config: object,
-  roots: Array<string> = [],
   id: string = "temp"
 ): CloudServer {
   return {
@@ -58,7 +54,6 @@ export const GenerateCloudServer = function(
     name,
     color,
     config,
-    isCloud: true,
-    roots: roots
+    isCloud: true
   };
 };

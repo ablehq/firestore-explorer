@@ -6,9 +6,7 @@
       </v-btn>
       <v-toolbar-title :color="server.color">
         {{ formTitle }}
-        <v-icon :color="server.color">{{
-          server.type === "emulated" ? "adb" : "cloud"
-        }}</v-icon>
+        <v-icon :color="server.color">{{ server.type === "emulated" ? "adb" : "cloud" }}</v-icon>
       </v-toolbar-title>
     </v-toolbar>
     <v-flex>
@@ -26,8 +24,32 @@
         <v-icon right>play_arrow</v-icon>
       </v-btn>
     </v-flex>
-
-    <pre><code>{{ responseJson }}</code></pre>
+    <v-layout class="mx-2 mt-4" v-if="responseData.length > 0">
+      <v-flex class="md3">
+        <v-card>
+          <v-list>
+            <template v-for="(item, index) in responseData">
+              <v-divider v-if="index > 0" :key="index"></v-divider>
+              <v-list-tile :key="item.id">
+                <v-list-tile-content>
+                  <v-list-tile-title v-text="item.id"></v-list-tile-title>
+                </v-list-tile-content>
+              </v-list-tile>
+            </template>
+          </v-list>
+        </v-card>
+      </v-flex>
+      <v-flex class="md6 ml-2">
+        <v-card>
+          <v-btn flat outline>Hey</v-btn>
+        </v-card>
+      </v-flex>
+      <v-flex class="md3 ml-2">
+        <v-card>
+          <v-btn flat outline>Hey</v-btn>
+        </v-card>
+      </v-flex>
+    </v-layout>
   </v-container>
 </template>
 
@@ -38,6 +60,12 @@ import Component from "vue-class-component";
 import { Prop } from "vue-property-decorator";
 import { Server } from "../stores/servers/State";
 import MonacoEditor from "vue-monaco";
+type DataItem = {
+  id: string;
+  path: string;
+  data: any;
+};
+type ResponseData = Array<DataItem>;
 @Component({
   components: {
     MonacoEditor
@@ -56,9 +84,7 @@ export default class ExploreApp extends Vue {
   };
   editorLanguages = "javascript";
   responseLanguage = "json";
-  responseJson = {
-    hello: "world"
-  };
+  responseData: ResponseData = [];
   responseRendererOptions = {
     readOnly: true,
     minimap: {
@@ -105,13 +131,14 @@ export default class ExploreApp extends Vue {
         }
       }
     }).then((resp: any) => resp.data);
-    this.responseJson = responseData;
+    this.responseData = responseData.data;
+    console.log(this.responseData);
   }
 }
 </script>
 
 <style scoped>
 .editor {
-  height: 200px;
+  height: 100px;
 }
 </style>

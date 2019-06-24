@@ -8,28 +8,29 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const LocalHelper_1 = require("./LocalHelper");
 const FirebaseProxy_1 = require("../models/FirebaseProxy");
-const handleQuery = ({ payload: { server, query } }) => __awaiter(this, void 0, void 0, function* () {
+exports.handleQuery = ({ payload: { server, query } }) => __awaiter(this, void 0, void 0, function* () {
     let data = {};
     switch (server.type) {
         case "emulated":
             const db = FirebaseProxy_1.generateFirestoreEmulatedInstance(server.projectId);
             try {
                 const result = yield eval(query);
+                console.log(result);
                 let datum = {};
                 switch (result.constructor.name) {
                     case "DocumentSnapshot":
                         datum = {
                             docId: result.id,
-                            data: result.data()
+                            data: result.data(),
                         };
                         break;
                     case "QuerySnapshot":
                         datum = result.docs.map((item) => {
                             return {
-                                docId: item.id,
-                                data: item.data()
+                                id: item.id,
+                                path: item.path,
+                                data: item.data(),
                             };
                         });
                         break;
@@ -49,19 +50,4 @@ const handleQuery = ({ payload: { server, query } }) => __awaiter(this, void 0, 
     }
     return data;
 });
-exports.commandsHandler = (req, res) => __awaiter(this, void 0, void 0, function* () {
-    const body = req.body;
-    let data = {};
-    switch (body.name) {
-        case "query" /* QUERY */:
-            data = yield handleQuery(body);
-            break;
-        case "local" /* LOCAL */:
-            data = yield LocalHelper_1.handleLocalQuery(body);
-            break;
-        default:
-            break;
-    }
-    res.json(data);
-});
-//# sourceMappingURL=Commands.js.map
+//# sourceMappingURL=QueryHelper.js.map

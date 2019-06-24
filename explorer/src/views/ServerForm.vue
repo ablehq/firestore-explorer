@@ -56,28 +56,6 @@
                 outline
               ></v-text-field>
             </v-flex>
-            <v-combobox
-              :disabled="loading"
-              v-model="roots"
-              :items="roots"
-              label="Add Roots"
-              chips
-              solo
-              outline
-              multiple
-            >
-              <template v-slot:selection="data">
-                <v-chip
-                  :selected="data.selected"
-                  close
-                  class="my-2"
-                  @input="removeRoot(data.item)"
-                >
-                  <strong>{{ data.item }}</strong>
-                </v-chip>
-              </template>
-            </v-combobox>
-
             <v-flex v-if="isCloud">
               <v-text-field
                 v-model="config"
@@ -108,9 +86,9 @@
           </v-form>
         </v-flex>
       </v-layout>
-      <v-snackbar v-model="snackbar" :timeout="3000" top vertical>{{
-        errorText
-      }}</v-snackbar>
+      <v-snackbar v-model="snackbar" :timeout="3000" top vertical>
+        {{ errorText }}
+      </v-snackbar>
     </v-container>
   </v-container>
 </template>
@@ -144,7 +122,6 @@ export default class NewServer extends Vue {
   snackbar: boolean = false;
   errorText: string = "";
   isInEditMode: boolean = false;
-  roots: Array<string> = [];
 
   created() {
     if (this.serverId) {
@@ -154,7 +131,6 @@ export default class NewServer extends Vue {
         this.name = server.name;
         this.serverType = server.type;
         this.serverColor = server.color;
-        this.roots = server.roots;
         switch (server.type) {
           case "emulated":
             this.appId = server.appId;
@@ -218,8 +194,7 @@ export default class NewServer extends Vue {
         this.name,
         this.serverColor,
         this.projectId,
-        this.appId,
-        this.roots
+        this.appId
       );
     } else {
       return GenerateEmulatedServer(
@@ -227,7 +202,6 @@ export default class NewServer extends Vue {
         this.serverColor,
         this.projectId,
         this.appId,
-        this.roots,
         this.serverId
       );
     }
@@ -238,22 +212,16 @@ export default class NewServer extends Vue {
       return GenerateCloudServer(
         this.name,
         this.serverColor,
-        JSON.parse(this.config),
-        this.roots
+        JSON.parse(this.config)
       );
     } else {
       return GenerateCloudServer(
         this.name,
         this.serverColor,
         JSON.parse(this.config),
-        this.roots,
         this.serverId
       );
     }
-  }
-
-  removeRoot(root: string) {
-    this.roots = this.roots.filter(item => item !== root);
   }
 
   async createServer() {

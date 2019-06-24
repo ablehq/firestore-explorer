@@ -13,12 +13,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 var bodyParser = require("body-parser");
 var cors = require("cors");
-const commandsController = __importStar(require("./controllers/Commands"));
+const commandsController = __importStar(require("./controllers/CommandsController"));
 const app = express_1.default();
 app.use(cors());
 app.use(bodyParser.json({ type: "application/json" }));
 app.set("port", process.env.PORT || 7000);
-app.post("/command", commandsController.commandsHandler);
+app.post("/command", commandsController.handler);
 app.listen(app.get("port"), () => {
     console.log("  App is running at http://localhost:%d in %s mode", app.get("port"), app.get("env"));
     console.log("  Press CTRL-C to stop\n");

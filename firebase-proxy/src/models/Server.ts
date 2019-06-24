@@ -2,7 +2,6 @@ export interface BaseServer {
   readonly type: "emulated" | "cloud";
   readonly projectId: string;
   readonly appId: string;
-  readonly roots: Array<string>;
 }
 
 export interface EmulatedServer extends BaseServer {
