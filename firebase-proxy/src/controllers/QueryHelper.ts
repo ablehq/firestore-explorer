@@ -8,12 +8,12 @@ export const handleQuery = async ({ payload: { server, query } }: Query) => {
       const db = generateFirestoreEmulatedInstance(server.projectId);
       try {
         const result = await eval(query);
-        console.log(result);
         let datum = {};
         switch (result.constructor.name) {
           case "DocumentSnapshot":
             datum = {
-              docId: result.id,
+              id: result.id,
+              path: result.path,
               data: result.data(),
             };
             break;
@@ -21,7 +21,7 @@ export const handleQuery = async ({ payload: { server, query } }: Query) => {
             datum = result.docs.map((item: any) => {
               return {
                 id: item.id,
-                path: item.path,
+                path: item.ref.path,
                 data: item.data(),
               };
             });

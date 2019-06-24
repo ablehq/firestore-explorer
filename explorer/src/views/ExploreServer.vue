@@ -6,7 +6,9 @@
       </v-btn>
       <v-toolbar-title :color="server.color">
         {{ formTitle }}
-        <v-icon :color="server.color">{{ server.type === "emulated" ? "adb" : "cloud" }}</v-icon>
+        <v-icon :color="server.color">
+          {{ server.type === "emulated" ? "adb" : "cloud" }}
+        </v-icon>
       </v-toolbar-title>
     </v-toolbar>
     <v-flex>
@@ -24,31 +26,50 @@
         <v-icon right>play_arrow</v-icon>
       </v-btn>
     </v-flex>
-    <v-layout class="mx-2 mt-4" v-if="responseData.length > 0">
-      <v-flex class="md3">
-        <v-card>
-          <v-list>
-            <template v-for="(item, index) in responseData">
-              <v-divider v-if="index > 0" :key="index"></v-divider>
-              <v-list-tile :key="item.id">
-                <v-list-tile-content>
-                  <v-list-tile-title v-text="item.id"></v-list-tile-title>
-                </v-list-tile-content>
-              </v-list-tile>
-            </template>
-          </v-list>
-        </v-card>
-      </v-flex>
-      <v-flex class="md6 ml-2">
-        <v-card>
-          <v-btn flat outline>Hey</v-btn>
-        </v-card>
-      </v-flex>
-      <v-flex class="md3 ml-2">
-        <v-card>
-          <v-btn flat outline>Hey</v-btn>
-        </v-card>
-      </v-flex>
+    <v-layout column class="mx-2 mt-4" v-if="responseData.length > 0">
+      <v-layout>
+        <v-flex class="md3">
+          <p class="subheading">ID</p>
+        </v-flex>
+        <v-flex class="md6">
+          <p class="subheading">Document</p>
+        </v-flex>
+        <v-flex class="md3">
+          <p class="subheading">Sub Collections</p>
+        </v-flex>
+      </v-layout>
+      <v-layout>
+        <v-flex class="md3">
+          <v-card>
+            <v-list>
+              <template v-for="(item, index) in responseData">
+                <v-divider
+                  v-if="index > 0"
+                  :key="`divider-${item.id}`"
+                ></v-divider>
+                <v-list-tile
+                  :key="item.id"
+                  @click="documentIDClicked(item.path)"
+                >
+                  <v-list-tile-content>
+                    <v-list-tile-title v-text="item.id"></v-list-tile-title>
+                  </v-list-tile-content>
+                </v-list-tile>
+              </template>
+            </v-list>
+          </v-card>
+        </v-flex>
+        <v-flex class="md6 ml-2">
+          <v-card>
+            <v-btn flat outline>Hey</v-btn>
+          </v-card>
+        </v-flex>
+        <v-flex class="md3 ml-2">
+          <v-card>
+            <v-btn flat outline>Hey</v-btn>
+          </v-card>
+        </v-flex>
+      </v-layout>
     </v-layout>
   </v-container>
 </template>
@@ -130,9 +151,15 @@ export default class ExploreApp extends Vue {
           query: this.query
         }
       }
-    }).then((resp: any) => resp.data);
+    }).then((resp: any) => {
+      return resp.data;
+    });
+
     this.responseData = responseData.data;
-    console.log(this.responseData);
+  }
+
+  documentIDClicked(path: string) {
+    console.log(path);
   }
 }
 </script>

@@ -16,12 +16,12 @@ exports.handleQuery = ({ payload: { server, query } }) => __awaiter(this, void 0
             const db = FirebaseProxy_1.generateFirestoreEmulatedInstance(server.projectId);
             try {
                 const result = yield eval(query);
-                console.log(result);
                 let datum = {};
                 switch (result.constructor.name) {
                     case "DocumentSnapshot":
                         datum = {
-                            docId: result.id,
+                            id: result.id,
+                            path: result.path,
                             data: result.data(),
                         };
                         break;
@@ -29,7 +29,7 @@ exports.handleQuery = ({ payload: { server, query } }) => __awaiter(this, void 0
                         datum = result.docs.map((item) => {
                             return {
                                 id: item.id,
-                                path: item.path,
+                                path: item.ref.path,
                                 data: item.data(),
                             };
                         });
