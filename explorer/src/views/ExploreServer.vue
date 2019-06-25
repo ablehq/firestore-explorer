@@ -6,9 +6,9 @@
       </v-btn>
       <v-toolbar-title :color="server.color">
         {{ formTitle }}
-        <v-icon :color="server.color">
-          {{ server.type === "emulated" ? "adb" : "cloud" }}
-        </v-icon>
+        <v-icon :color="server.color">{{
+          server.type === "emulated" ? "adb" : "cloud"
+        }}</v-icon>
       </v-toolbar-title>
     </v-toolbar>
     <v-flex>
@@ -26,51 +26,15 @@
         <v-icon right>play_arrow</v-icon>
       </v-btn>
     </v-flex>
-    <v-layout column class="mx-2 mt-4" v-if="responseData.length > 0">
-      <v-layout>
-        <v-flex class="md3">
-          <p class="subheading">ID</p>
-        </v-flex>
-        <v-flex class="md6">
-          <p class="subheading">Document</p>
-        </v-flex>
-        <v-flex class="md3">
-          <p class="subheading">Sub Collections</p>
-        </v-flex>
-      </v-layout>
-      <v-layout>
-        <v-flex class="md3">
-          <v-card>
-            <v-list>
-              <template v-for="(item, index) in responseData">
-                <v-divider
-                  v-if="index > 0"
-                  :key="`divider-${item.id}`"
-                ></v-divider>
-                <v-list-tile
-                  :key="item.id"
-                  @click="documentIDClicked(item.path)"
-                >
-                  <v-list-tile-content>
-                    <v-list-tile-title v-text="item.id"></v-list-tile-title>
-                  </v-list-tile-content>
-                </v-list-tile>
-              </template>
-            </v-list>
-          </v-card>
-        </v-flex>
-        <v-flex class="md6 ml-2">
-          <v-card>
-            <v-btn flat outline>Hey</v-btn>
-          </v-card>
-        </v-flex>
-        <v-flex class="md3 ml-2">
-          <v-card>
-            <v-btn flat outline>Hey</v-btn>
-          </v-card>
-        </v-flex>
-      </v-layout>
-    </v-layout>
+    <query-snapshot-response
+      v-if="isQuerySnapshot"
+      :response="queryResponse"
+      :selectedDocumentDataResponse="selectedDocumentDataResponse"
+      :selectedDocumentSubCollectionResponse="
+        selectedDocumentSubCollectionResponse
+      "
+      @documentClicked="documentClicked"
+    />
   </v-container>
 </template>
 
@@ -80,16 +44,28 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import { Prop } from "vue-property-decorator";
 import { Server } from "../stores/servers/State";
+import {
+  QueryResponse,
+  DocumentSnapshotResponse,
+  QueryDocumentSnapshotResponse,
+  QueryResponseItem,
+  DocumentResponse,
+  CollectionArrayResponse
+} from "../stores/query";
+import QuerySnapshotResponse from "../components/QuerySnapshotResponse.vue";
 import MonacoEditor from "vue-monaco";
-type DataItem = {
-  id: string;
-  path: string;
-  data: any;
+const commonHttpParams = {
+  method: "post",
+  url: "http://localhost:7000/command",
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json"
+  }
 };
-type ResponseData = Array<DataItem>;
 @Component({
   components: {
-    MonacoEditor
+    MonacoEditor,
+    QuerySnapshotResponse
   }
 })
 export default class ExploreApp extends Vue {
@@ -105,7 +81,8 @@ export default class ExploreApp extends Vue {
   };
   editorLanguages = "javascript";
   responseLanguage = "json";
-  responseData: ResponseData = [];
+  queryResponse!: QueryResponse;
+  isResponseAvailable = false;
   responseRendererOptions = {
     readOnly: true,
     minimap: {
@@ -113,6 +90,8 @@ export default class ExploreApp extends Vue {
     },
     lineNumbers: true
   };
+  selectedDocumentDataResponse: DocumentResponse | null = null;
+  selectedDocumentSubCollectionResponse: CollectionArrayResponse | null = null;
 
   created() {
     const servers = this.$store.getters.servers as Array<Server>;
@@ -136,30 +115,80 @@ export default class ExploreApp extends Vue {
     return this.$store.getters.isThemeDark ? "vs-dark" : "vs";
   }
 
-  async executeQuery() {
-    const responseData = await axios({
-      method: "post",
-      url: "http://localhost:7000/command",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json"
-      },
-      data: {
-        name: "query",
-        payload: {
-          server: this.server,
-          query: this.query
-        }
-      }
-    }).then((resp: any) => {
-      return resp.data;
-    });
-
-    this.responseData = responseData.data;
+  get isDocumentSnapshot(): boolean {
+    return (
+      this.isResponseAvailable && this.queryResponse.type === "DocumentSnapshot"
+    );
   }
 
-  documentIDClicked(path: string) {
-    console.log(path);
+  get isQueryDocumentSnapshot(): boolean {
+    return (
+      this.isResponseAvailable &&
+      this.queryResponse.type === "QueryDocumentSnapshot"
+    );
+  }
+
+  get isQuerySnapshot(): boolean {
+    return (
+      this.isResponseAvailable && this.queryResponse.type === "QuerySnapshot"
+    );
+  }
+
+  async executeQuery() {
+    try {
+      this.isResponseAvailable = false;
+      this.queryResponse = await axios({
+        ...commonHttpParams,
+        data: {
+          name: "query",
+          payload: {
+            server: this.server,
+            query: this.query
+          }
+        }
+      }).then((resp: any) => {
+        return resp.data;
+      });
+    } catch (error) {
+      console.log("Recevied error executing query");
+      console.error(error);
+    }
+    this.isResponseAvailable = true;
+  }
+
+  async documentClicked(item: QueryResponseItem) {
+    try {
+      const documentData = await axios({
+        ...commonHttpParams,
+        data: {
+          name: "query",
+          payload: {
+            server: this.server,
+            query: `db.doc('${item.path}').get()`
+          }
+        }
+      }).then((resp: any) => {
+        return resp.data;
+      });
+      this.selectedDocumentDataResponse = documentData;
+
+      const subCollectionData = await axios({
+        ...commonHttpParams,
+        data: {
+          name: "query",
+          payload: {
+            server: this.server,
+            query: `db.doc('${item.path}').listCollections()`
+          }
+        }
+      }).then((resp: any) => {
+        return resp.data;
+      });
+      this.selectedDocumentSubCollectionResponse = subCollectionData;
+    } catch (error) {
+      console.log("Recevied error executing query");
+      console.error(error);
+    }
   }
 }
 </script>

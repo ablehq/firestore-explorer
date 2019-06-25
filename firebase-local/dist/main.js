@@ -19,5 +19,10 @@ const firebaseApp = authedApp({
 console.log(`Project Id: ${projectId}`);
 console.log(`App Id: ${firebaseApp.app.name}`);
 console.log(firebaseApp.app.options);
-movies_1.seedToFirebase(firebaseApp);
+let size = -1;
+if (process.argv.length > 2) {
+    size = Number.parseInt(process.argv[2]);
+    console.log(`Seeding data of size ${size}`);
+}
+movies_1.seedToFirebase(firebaseApp, size);
 //# sourceMappingURL=main.js.map

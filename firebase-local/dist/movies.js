@@ -18,7 +18,11 @@ const movieMapperGenerator = (dataJSON, dataMap) => {
         });
     };
 };
-exports.loadLocalMovies = movieMapperGenerator(exports.localMoviesJSON, exports.localMovies);
+exports.loadLocalMovies = (size) => {
+    console.log(`Need to shorten array ${size}`);
+    exports.localMoviesJSON.splice(0, exports.localMoviesJSON.length - size);
+    movieMapperGenerator(exports.localMoviesJSON, exports.localMovies)();
+};
 exports.loadLocalLinks = movieMapperGenerator(exports.localLinksJSON, exports.localLinks);
 const movieArrayMapperGenerator = (dataJSON, dataMap) => {
     return () => {
@@ -42,7 +46,9 @@ const tagRatingWriterObs = (firebaseApp, movie, collectionName, collectionData) 
     const mergeables = [];
     if (collection && collection.length > 0) {
         for (const tag of collection) {
-            const obs = rxjs_1.from(collectionRef.add(tag));
+            const obs = rxjs_1.from(collectionRef.add(tag)).pipe(operators_1.tap(item => {
+                console.log(`Tag added ${item.id}`);
+            }));
             mergeables.push(obs);
         }
     }
@@ -60,13 +66,16 @@ const movieWriteObs = (firebaseApp, movie) => {
     const movieId = `${movie.movieId}`;
     return rxjs_1.from(moviesRef.doc(movieId).set(movie)).pipe(operators_1.map(_ => movie));
 };
-exports.seedToFirebase = (firebaseApp) => {
+exports.seedToFirebase = (firebaseApp, size) => {
+    exports.loadLocalMovies(size);
+    exports.loadLocalTags();
+    exports.loadLocalRatings();
     const movieSpinner = ora_1.default(`Start loding movies`).start();
     const moviesRef = firebaseApp.collection("movies");
     const snapShotObs = rxjs_1.from(moviesRef.get()).pipe(operators_1.map(snapshot => {
         return {
             items: new Array(),
-            total: snapshot.size
+            total: snapshot.size,
         };
     }));
     const dataObs = rxjs_1.from(exports.localMoviesJSON).pipe(operators_1.mergeMap(movie => rxjs_1.concat(movieWriteObs(firebaseApp, movie), rxjs_1.merge(tagWriterObs(firebaseApp, movie), ratingWriterObs(firebaseApp, movie))).pipe(operators_1.reduce((_, movie) => movie, movie))), operators_1.scan((acc, movie) => {
@@ -74,12 +83,12 @@ exports.seedToFirebase = (firebaseApp) => {
         return acc;
     }, {
         items: new Array(),
-        total: exports.localMoviesJSON.length
+        total: exports.localMoviesJSON.length,
     }), operators_1.takeWhile(acc => acc.items.length < exports.localMoviesJSON.length));
     snapShotObs
         .pipe(operators_1.mergeMap(snapshot => rxjs_1.iif(() => snapshot.total > 0, rxjs_1.of({
         items: new Array(),
-        total: exports.localMoviesJSON.length
+        total: exports.localMoviesJSON.length,
     }), dataObs)))
         .subscribe(val => {
         movieSpinner.text = `Loading movies ${val.items.length} / ${val.total}`;
@@ -104,7 +113,7 @@ const kickVerification = (firebaseApp) => {
             .collection("tags")
             .get()).pipe(operators_1.map(snapshot => {
             const tags = exports.localTags.get(movie.movieId);
-            if (tags) {
+            if (tags && tags.length > 0) {
                 if (tags.length === snapshot.size) {
                     return true;
                 }
@@ -120,7 +129,7 @@ const kickVerification = (firebaseApp) => {
             .collection("ratings")
             .get()).pipe(operators_1.map(snapshot => {
             const tags = exports.localRatings.get(movie.movieId);
-            if (tags) {
+            if (tags && tags.length > 0) {
                 if (tags.length === snapshot.size) {
                     return true;
                 }

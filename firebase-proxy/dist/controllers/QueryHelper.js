@@ -17,16 +17,32 @@ exports.handleQuery = ({ payload: { server, query } }) => __awaiter(this, void 0
             try {
                 const result = yield eval(query);
                 let datum = {};
+                let resultType = "";
+                let res = null;
+                console.log(result);
                 switch (result.constructor.name) {
                     case "DocumentSnapshot":
+                        resultType = "DocumentSnapshot";
+                        res = result;
                         datum = {
-                            id: result.id,
-                            path: result.path,
-                            data: result.data(),
+                            id: res.id,
+                            path: res.ref.path,
+                            data: res.data(),
+                        };
+                        break;
+                    case "QueryDocumentSnapshot":
+                        resultType = "QueryDocumentSnapshot";
+                        res = result;
+                        datum = {
+                            id: res.id,
+                            path: res.ref.path,
+                            data: res.data(),
                         };
                         break;
                     case "QuerySnapshot":
-                        datum = result.docs.map((item) => {
+                        resultType = "QuerySnapshot";
+                        res = result;
+                        datum = res.docs.map(item => {
                             return {
                                 id: item.id,
                                 path: item.ref.path,
@@ -34,8 +50,25 @@ exports.handleQuery = ({ payload: { server, query } }) => __awaiter(this, void 0
                             };
                         });
                         break;
+                    case "Array":
+                        if (result && result.length > 0) {
+                            resultType = "CollectionArray";
+                            // check the first item and figure out the type
+                            if (result[0].constructor.name === "CollectionReference") {
+                                res = result;
+                                datum = res.map(item => {
+                                    return {
+                                        id: item.id,
+                                        path: item.path,
+                                    };
+                                });
+                            }
+                        }
+                        break;
                 }
+                data["queryId"] = `${Date.now()}`;
                 data["success"] = true;
+                data["type"] = resultType;
                 data["data"] = datum;
             }
             catch (error) {

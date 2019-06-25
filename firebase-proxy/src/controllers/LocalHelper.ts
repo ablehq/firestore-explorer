@@ -8,21 +8,21 @@ const firestore = new Firestore({
   projectId: "firebase-explorer-test",
   sslCreds: grpc.credentials.createInsecure(),
   customHeaders: {
-    Authorization: "Bearer owner"
-  }
+    Authorization: "Bearer owner",
+  },
 });
 
 export const handleLocalQuery = async (query: LocalQuery) => {
   let data: { [key: string]: any } = {};
   const db = firestore;
-  const rootCollectionRefs = await db.listCollections();
-  const datum = rootCollectionRefs.map(collectionListRef => {
-    return {
-      id: collectionListRef.id,
-      path: collectionListRef.path
-    };
-  });
+  const result = await db.doc("movies/60756").get();
+  const collections = await result.ref.listCollections();
+  console.log(collections);
   data["success"] = true;
-  data["data"] = datum;
+  data["data"] = {
+    id: result.id,
+    path: result.ref.path,
+    data: result.data(),
+  };
   return data;
 };
