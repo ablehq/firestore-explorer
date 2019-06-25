@@ -35,6 +35,12 @@
       "
       @documentClicked="documentClicked"
     />
+    <document-sub-collection-response
+      v-if="isDocumentSnapshot"
+      :response="queryResponse"
+      :subCollectionResponse="documentSubCollectionResponse"
+      @documentClicked="documentClicked"
+    />
   </v-container>
 </template>
 
@@ -53,6 +59,7 @@ import {
   CollectionArrayResponse
 } from "../stores/query";
 import QuerySnapshotResponse from "../components/QuerySnapshotResponse.vue";
+import DocumentSubCollectionResponse from "../components/DocumentSubCollectionResponse.vue";
 import MonacoEditor from "vue-monaco";
 const commonHttpParams = {
   method: "post",
@@ -65,7 +72,8 @@ const commonHttpParams = {
 @Component({
   components: {
     MonacoEditor,
-    QuerySnapshotResponse
+    QuerySnapshotResponse,
+    DocumentSubCollectionResponse
   }
 })
 export default class ExploreApp extends Vue {
@@ -92,6 +100,7 @@ export default class ExploreApp extends Vue {
   };
   selectedDocumentDataResponse: DocumentResponse | null = null;
   selectedDocumentSubCollectionResponse: CollectionArrayResponse | null = null;
+  documentSubCollectionResponse: CollectionArrayResponse | null = null;
 
   created() {
     const servers = this.$store.getters.servers as Array<Server>;
@@ -117,14 +126,9 @@ export default class ExploreApp extends Vue {
 
   get isDocumentSnapshot(): boolean {
     return (
-      this.isResponseAvailable && this.queryResponse.type === "DocumentSnapshot"
-    );
-  }
-
-  get isQueryDocumentSnapshot(): boolean {
-    return (
       this.isResponseAvailable &&
-      this.queryResponse.type === "QueryDocumentSnapshot"
+      (this.queryResponse.type === "DocumentSnapshot" ||
+        this.queryResponse.type === "QueryDocumentSnapshot")
     );
   }
 
@@ -149,6 +153,24 @@ export default class ExploreApp extends Vue {
       }).then((resp: any) => {
         return resp.data;
       });
+      if (
+        this.queryResponse.type === "DocumentSnapshot" ||
+        this.queryResponse.type === "QueryDocumentSnapshot"
+      ) {
+        const docPath = (this.queryResponse as DocumentResponse).data.path;
+        this.documentSubCollectionResponse = await axios({
+          ...commonHttpParams,
+          data: {
+            name: "query",
+            payload: {
+              server: this.server,
+              query: `db.doc('${docPath}').listCollections()`
+            }
+          }
+        }).then((resp: any) => {
+          return resp.data;
+        });
+      }
     } catch (error) {
       console.log("Recevied error executing query");
       console.error(error);
