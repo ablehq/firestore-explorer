@@ -9,15 +9,16 @@
       </v-flex>
     </v-layout>
     <v-layout>
-      <document-response
+      <document-result
         v-if="selectedDocumentResponse !== null"
         class="md6"
         :response="selectedDocumentResponse"
       />
-      <collection-response
+      <collection-result
         v-if="selectedDocSubCollectionResponse !== null"
         class="md6 ml-2"
         :response="selectedDocSubCollectionResponse"
+        @subCollectionClicked="subCollectionClicked"
       />
     </v-layout>
   </v-layout>
@@ -36,12 +37,12 @@ import {
   QueryDocumentSnapshotResponse,
   CollectionArrayResponse
 } from "../stores/query";
-import DocumentResponse from "./DocumentResponse.vue";
-import CollectionResponse from "./CollectionResponse.vue";
+import DocumentResult from "./DocumentResult.vue";
+import CollectionResult from "./CollectionResult.vue";
 @Component({
   components: {
-    DocumentResponse,
-    CollectionResponse
+    DocumentResult,
+    CollectionResult
   }
 })
 export default class DocumentSnapshotResult extends Vue {
@@ -63,6 +64,10 @@ export default class DocumentSnapshotResult extends Vue {
       return this.subCollectionResponse;
     }
     return null;
+  }
+
+  subCollectionClicked(item: QueryResponseItem) {
+    this.$emit("subCollectionClicked", item);
   }
 }
 </script>

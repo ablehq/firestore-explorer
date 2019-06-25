@@ -1,12 +1,13 @@
 <template>
   <v-flex>
     <v-card>
-      <v-list>
+      <v-list two-line>
         <template v-for="(item, index) in results">
           <v-divider v-if="index > 0" :key="`divider-${item.id}`"></v-divider>
           <v-list-tile :key="item.id" @click="subCollectionClicked(item)">
             <v-list-tile-content>
               <v-list-tile-title v-text="item.id"></v-list-tile-title>
+              <v-list-tile-sub-title>{{ item.path }}</v-list-tile-sub-title>
             </v-list-tile-content>
           </v-list-tile>
         </template>
@@ -36,7 +37,7 @@ export default class DocumentResponse extends Vue {
   }
 
   subCollectionClicked(item: QueryResponseItem) {
-    console.log(`Subcollection clicked ${item.path}`);
+    this.$emit("subCollectionClicked", item);
   }
 }
 </script>

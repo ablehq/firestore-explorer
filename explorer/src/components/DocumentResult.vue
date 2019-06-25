@@ -1,22 +1,20 @@
 <template>
   <v-flex>
     <v-card>
-      <v-layout column class="pa-2">
-        <v-flex>
-          <p>
-            <span class="subheading">ID: {{ response.data.id }}</span>
-          </p>
-        </v-flex>
-        <v-flex>
-          <p>
-            <span class="subheading">Path: {{ response.data.path }}</span>
-          </p>
-        </v-flex>
+      <v-flex>
+        <v-list-tile class="pa-2">
+          <v-list-tile-content>
+            <v-list-tile-title
+              v-text="this.response.data.id"
+            ></v-list-tile-title>
+            <v-list-tile-sub-title>{{
+              this.response.data.path
+            }}</v-list-tile-sub-title>
+          </v-list-tile-content>
+        </v-list-tile>
         <v-divider></v-divider>
-        <v-flex class="my-2">
-          <code>{{ documentData }}</code>
-        </v-flex>
-      </v-layout>
+        <code class="pa-2">{{ documentData }}</code>
+      </v-flex>
     </v-card>
   </v-flex>
 </template>

@@ -6,9 +6,9 @@
       </v-btn>
       <v-toolbar-title :color="server.color">
         {{ formTitle }}
-        <v-icon :color="server.color">{{
-          server.type === "emulated" ? "adb" : "cloud"
-        }}</v-icon>
+        <v-icon :color="server.color">
+          {{ server.type === "emulated" ? "adb" : "cloud" }}
+        </v-icon>
       </v-toolbar-title>
     </v-toolbar>
     <v-flex>
@@ -26,7 +26,16 @@
         <v-icon right>play_arrow</v-icon>
       </v-btn>
     </v-flex>
-    <query-snapshot-response
+    <v-flex>
+      <v-breadcrumbs :items="breadcrumbs" divider=">">
+        <template v-slot:item="props">
+          <v-chip label @click="breadcrumbClicked(props.item)">{{
+            props.item.text
+          }}</v-chip>
+        </template>
+      </v-breadcrumbs>
+    </v-flex>
+    <query-snapshot-result
       v-if="isQuerySnapshot"
       :response="queryResponse"
       :selectedDocumentDataResponse="selectedDocumentDataResponse"
@@ -34,12 +43,18 @@
         selectedDocumentSubCollectionResponse
       "
       @documentClicked="documentClicked"
+      @subCollectionClicked="subCollectionClicked"
     />
-    <document-sub-collection-response
+    <document-sub-collection-result
       v-if="isDocumentSnapshot"
       :response="queryResponse"
       :subCollectionResponse="documentSubCollectionResponse"
-      @documentClicked="documentClicked"
+      @subCollectionClicked="subCollectionClicked"
+    />
+    <collection-result
+      v-if="isCollectionSnapshot"
+      :response="queryResponse"
+      @subCollectionClicked="subCollectionClicked"
     />
   </v-container>
 </template>
@@ -56,10 +71,12 @@ import {
   QueryDocumentSnapshotResponse,
   QueryResponseItem,
   DocumentResponse,
-  CollectionArrayResponse
+  CollectionArrayResponse,
+  QuerySnapshotResponse
 } from "../stores/query";
-import QuerySnapshotResponse from "../components/QuerySnapshotResponse.vue";
-import DocumentSubCollectionResponse from "../components/DocumentSubCollectionResponse.vue";
+import QuerySnapshotResult from "../components/QuerySnapshotResult.vue";
+import DocumentSubCollectionResult from "../components/DocumentSubCollectionResult.vue";
+import CollectionResult from "../components/CollectionResult.vue";
 import MonacoEditor from "vue-monaco";
 const commonHttpParams = {
   method: "post",
@@ -69,11 +86,18 @@ const commonHttpParams = {
     Accept: "application/json"
   }
 };
+type PathBreadcrumb = {
+  text: string;
+  disabled: boolean;
+  pathComponents: Array<string>;
+  isDocument: boolean;
+};
 @Component({
   components: {
     MonacoEditor,
-    QuerySnapshotResponse,
-    DocumentSubCollectionResponse
+    QuerySnapshotResult,
+    DocumentSubCollectionResult,
+    CollectionResult
   }
 })
 export default class ExploreApp extends Vue {
@@ -101,6 +125,7 @@ export default class ExploreApp extends Vue {
   selectedDocumentDataResponse: DocumentResponse | null = null;
   selectedDocumentSubCollectionResponse: CollectionArrayResponse | null = null;
   documentSubCollectionResponse: CollectionArrayResponse | null = null;
+  breadcrumbs: Array<PathBreadcrumb> = [];
 
   created() {
     const servers = this.$store.getters.servers as Array<Server>;
@@ -138,9 +163,18 @@ export default class ExploreApp extends Vue {
     );
   }
 
+  get isCollectionSnapshot(): boolean {
+    return (
+      this.isResponseAvailable && this.queryResponse.type === "CollectionArray"
+    );
+  }
+
   async executeQuery() {
     try {
       this.isResponseAvailable = false;
+      this.selectedDocumentDataResponse = null;
+      this.selectedDocumentSubCollectionResponse = null;
+      this.documentSubCollectionResponse = null;
       this.queryResponse = await axios({
         ...commonHttpParams,
         data: {
@@ -175,6 +209,7 @@ export default class ExploreApp extends Vue {
       console.log("Recevied error executing query");
       console.error(error);
     }
+    this.buildBreadcrumbs();
     this.isResponseAvailable = true;
   }
 
@@ -211,6 +246,77 @@ export default class ExploreApp extends Vue {
       console.log("Recevied error executing query");
       console.error(error);
     }
+  }
+
+  async subCollectionClicked(item: QueryResponseItem) {
+    this.query = `db.collection('${item.path}').limit(10).get()`;
+    this.executeQuery();
+  }
+
+  async breadcrumbClicked(item: PathBreadcrumb) {
+    let path = item.pathComponents.join("/");
+    if (item.isDocument) {
+      this.query = `db.doc('${path}').get()`;
+    } else {
+      let path = item.pathComponents.join(",");
+      this.query = `db.collection('${path}').limit(10).get()`;
+    }
+    this.executeQuery();
+  }
+
+  buildBreadcrumbs() {
+    let res: QueryResponse;
+    let commonPath = "";
+    switch (this.queryResponse.type) {
+      case "QuerySnapshot":
+        res = this.queryResponse as QuerySnapshotResponse;
+        if (res.data.length > 0) {
+          commonPath = this.sharedStart(res.data.map(item => item.parent));
+        }
+        break;
+      case "DocumentSnapshot":
+      case "QueryDocumentSnapshot":
+        res = this.queryResponse as DocumentResponse;
+        commonPath = res.data.path;
+        break;
+      case "CollectionArray":
+        res = this.queryResponse as CollectionArrayResponse;
+        if (res.data.length > 0) {
+          commonPath = this.sharedStart(res.data.map(item => item.path));
+        }
+        break;
+    }
+    if (commonPath !== "") {
+      this.breadcrumbs = commonPath
+        .split("/")
+        .reduce<Array<PathBreadcrumb>>(
+          (
+            acc: Array<PathBreadcrumb>,
+            item: string,
+            index: number,
+            source: Array<string>
+          ) => {
+            const crumb: PathBreadcrumb = {
+              pathComponents: source.slice(0, index + 1),
+              text: item,
+              disabled: false,
+              isDocument: index % 2 === 1
+            };
+            return acc.concat(crumb);
+          },
+          []
+        );
+    }
+  }
+
+  sharedStart(array: Array<string>) {
+    let A = array.concat().sort();
+    let a1 = A[0];
+    let a2 = A[A.length - 1];
+    let L = a1.length;
+    let i = 0;
+    while (i < L && a1.charAt(i) === a2.charAt(i)) i++;
+    return a1.substring(0, i);
   }
 }
 </script>

@@ -4,7 +4,7 @@ import {
   DocumentSnapshot,
   QueryDocumentSnapshot,
   QuerySnapshot,
-  CollectionReference,
+  CollectionReference
 } from "@google-cloud/firestore";
 
 export const handleQuery = async ({ payload: { server, query } }: Query) => {
@@ -30,7 +30,7 @@ export const handleQuery = async ({ payload: { server, query } }: Query) => {
             datum = {
               id: res.id,
               path: res.ref.path,
-              data: res.data(),
+              data: res.data()
             };
             break;
           case "QueryDocumentSnapshot":
@@ -39,7 +39,7 @@ export const handleQuery = async ({ payload: { server, query } }: Query) => {
             datum = {
               id: res.id,
               path: res.ref.path,
-              data: res.data(),
+              data: res.data()
             };
             break;
           case "QuerySnapshot":
@@ -49,7 +49,8 @@ export const handleQuery = async ({ payload: { server, query } }: Query) => {
               return {
                 id: item.id,
                 path: item.ref.path,
-                data: item.data(),
+                parent: item.ref.parent.path,
+                data: item.data()
               };
             });
             break;
@@ -62,7 +63,7 @@ export const handleQuery = async ({ payload: { server, query } }: Query) => {
                 datum = res.map(item => {
                   return {
                     id: item.id,
-                    path: item.path,
+                    path: item.path
                   };
                 });
               }

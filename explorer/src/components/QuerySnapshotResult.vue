@@ -1,5 +1,5 @@
 <template>
-  <v-layout column class="mx-2 mt-4">
+  <v-layout column class="mx-2">
     <v-layout>
       <v-flex class="md3">
         <p class="subheading">ID</p>
@@ -14,7 +14,7 @@
     <v-layout>
       <v-flex class="md3">
         <v-card>
-          <v-list>
+          <v-list two-line>
             <template v-for="(item, index) in results">
               <v-divider
                 v-if="index > 0"
@@ -27,18 +27,20 @@
               >
                 <v-list-tile-content>
                   <v-list-tile-title v-text="item.id"></v-list-tile-title>
+                  <v-list-tile-sub-title>{{ item.path }}</v-list-tile-sub-title>
                 </v-list-tile-content>
               </v-list-tile>
             </template>
           </v-list>
         </v-card>
       </v-flex>
-      <document-response
+      <document-result
         v-if="selectedDocumentResponse !== null"
         class="md6 ml-2"
         :response="selectedDocumentResponse"
       />
-      <collection-response
+      <collection-result
+        @subCollectionClicked="subCollectionClicked"
         v-if="selectedDocSubCollectionResponse !== null"
         class="md3 ml-2"
         :response="selectedDocSubCollectionResponse"
@@ -60,12 +62,12 @@ import {
   QueryDocumentSnapshotResponse,
   CollectionArrayResponse
 } from "../stores/query";
-import DocumentResponse from "./DocumentResponse.vue";
-import CollectionResponse from "./CollectionResponse.vue";
+import DocumentResult from "./DocumentResult.vue";
+import CollectionResult from "./CollectionResult.vue";
 @Component({
   components: {
-    DocumentResponse,
-    CollectionResponse
+    DocumentResult,
+    CollectionResult
   }
 })
 export default class QuerySnapshotResult extends Vue {
@@ -106,6 +108,10 @@ export default class QuerySnapshotResult extends Vue {
       return this.selectedDocumentSubCollectionResponse;
     }
     return null;
+  }
+
+  subCollectionClicked(item: QueryResponseItem) {
+    this.$emit("subCollectionClicked", item);
   }
 }
 </script>

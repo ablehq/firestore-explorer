@@ -3,6 +3,10 @@ export type QueryResponseItem = {
   path: string;
   data: any;
 };
+
+export type QueryResponseSnapshotItem = QueryResponseItem & {
+  parent: string;
+};
 export type DocumentSnapshotResponse = {
   type: "DocumentSnapshot";
   queryId: string;
@@ -16,7 +20,7 @@ export type QueryDocumentSnapshotResponse = {
 export type QuerySnapshotResponse = {
   type: "QuerySnapshot";
   queryId: string;
-  data: Array<QueryResponseItem>;
+  data: Array<QueryResponseSnapshotItem>;
 };
 export type CollectionArrayResponse = {
   type: "CollectionArray";
