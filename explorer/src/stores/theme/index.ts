@@ -4,10 +4,10 @@ import { RootState } from "..";
 import { getters } from "./Getters";
 import { mutations } from "./Mutations";
 import { actions } from "./Actions";
-
+import { isThemeDark } from "../../db";
 const themeStore: Module<ThemeState, RootState> = {
   state: {
-    mode: "light"
+    mode: isThemeDark() ? "dark" : "light"
   },
   getters,
   mutations,
