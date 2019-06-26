@@ -22,7 +22,6 @@ export const handleQuery = async ({ payload: { server, query } }: Query) => {
           | QuerySnapshot
           | Array<CollectionReference>
           | null = null;
-        console.log(result);
         switch (result.constructor.name) {
           case "DocumentSnapshot":
             resultType = "DocumentSnapshot";

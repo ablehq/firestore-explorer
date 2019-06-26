@@ -46,9 +46,9 @@ const tagRatingWriterObs = (firebaseApp, movie, collectionName, collectionData) 
     const mergeables = [];
     if (collection && collection.length > 0) {
         for (const tag of collection) {
-            const obs = rxjs_1.from(collectionRef.add(tag)).pipe(operators_1.tap(item => {
-                console.log(`Tag added ${item.id}`);
-            }));
+            let tagId = `${tag.movieId}-${tag.userId}-${tag.timestamp}`;
+            tagId = tagId.toLowerCase();
+            const obs = rxjs_1.from(collectionRef.doc(tagId).set(tag));
             mergeables.push(obs);
         }
     }
@@ -147,6 +147,96 @@ const kickVerification = (firebaseApp) => {
         else {
             movieSpinner.fail("Failed data verification");
         }
+    });
+};
+exports.deleteFromFirebase = (firebaseApp) => {
+    const movieSpinner = ora_1.default(`Start loding movies`).start();
+    const batchSize = 100;
+    const batchProcessTimeInMillis = 1000;
+    const delDoc = (docRef) => {
+        return rxjs_1.from(firebaseApp.doc(docRef).delete()).pipe(operators_1.mapTo(docRef));
+    };
+    const delMovieObs = (movieId) => {
+        return rxjs_1.from(firebaseApp
+            .collection("movies")
+            .doc(`${movieId}`)
+            .collection("tags")
+            .get()).pipe(operators_1.tap(val => console.log(val)), operators_1.concatMap(snapshot => {
+            let mergeables = [];
+            const docsArray = snapshot.docs;
+            docsArray.forEach((datum) => {
+                mergeables.push(delDoc(datum.ref.path));
+            });
+            console.log(`Tags mergeable length is ${mergeables.length}`);
+            if (mergeables.length === 0) {
+                return rxjs_1.of("empty");
+            }
+            return rxjs_1.concat(mergeables).pipe(operators_1.reduce(() => {
+                return movieId;
+            }, movieId));
+        }), operators_1.catchError(val => rxjs_1.of(`I caught: ${val}`)));
+        // const ratingsRemovers = from(
+        //   firebaseApp
+        //     .collection("movies")
+        //     .doc(`${movieId}`)
+        //     .collection("ratings")
+        //     .get(),
+        // ).pipe(
+        //   concatMap(snapshot => {
+        //     let mergeables: Array<Observable<string>> = [];
+        //     const docsArray = snapshot.docs;
+        //     docsArray.forEach((datum: any) => {
+        //       mergeables.push(delDoc(datum.ref.path));
+        //     });
+        //     console.log(`Ratings mergeable length is ${mergeables.length}`);
+        //     if (mergeables.length === 0) {
+        //       return of("empty");
+        //     }
+        //     return concat(mergeables).pipe(
+        //       reduce(() => {
+        //         return movieId;
+        //       }, movieId),
+        //     );
+        //   }),
+        // );
+        // return concat(tagRemovers, ratingsRemovers).pipe(
+        //   reduce(() => {
+        //     return movieId;
+        //   }, movieId),
+        // );
+    };
+    // process deletion of 100 movies every 500ms
+    rxjs_1.interval(batchProcessTimeInMillis)
+        .pipe(operators_1.concatMap(val => {
+        return rxjs_1.from(firebaseApp
+            .collection("movies")
+            .limit(batchSize)
+            .get()).pipe(operators_1.map(snapshot => ({
+            val,
+            snapshot,
+        })), operators_1.concatMap(({ val, snapshot }) => {
+            let mergeables = [];
+            const docsArray = snapshot.docs;
+            docsArray.forEach((datum) => {
+                mergeables.push(delMovieObs(datum.id));
+            });
+            if (mergeables.length === 0) {
+                return rxjs_1.of({ val: val, size: snapshot.size });
+            }
+            return rxjs_1.concat(mergeables).pipe(operators_1.reduce(() => {
+                return { val: val, size: snapshot.size };
+            }, { val: val, size: snapshot.size }));
+        }));
+    }), operators_1.takeWhile(data => {
+        return data.size > 0;
+    }))
+        .subscribe(data => {
+        movieSpinner.text = `Evaluating batch number ${data.val}`;
+    }, error => {
+        console.log(error);
+        movieSpinner.fail("Failed deleting movies content");
+    }, () => {
+        movieSpinner.succeed("Delete completed");
     });
 };
 //# sourceMappingURL=movies.js.map

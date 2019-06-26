@@ -19,7 +19,6 @@ exports.handleQuery = ({ payload: { server, query } }) => __awaiter(this, void 0
                 let datum = {};
                 let resultType = "";
                 let res = null;
-                console.log(result);
                 switch (result.constructor.name) {
                     case "DocumentSnapshot":
                         resultType = "DocumentSnapshot";

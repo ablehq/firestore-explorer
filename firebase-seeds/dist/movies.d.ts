@@ -1,4 +1,4 @@
-import * as firebase from "@firebase/testing";
+import { Firestore } from "@google-cloud/firestore";
 import { Link, Movie, Rating, Tag } from "./models";
 export declare const localMovies: Map<number, Movie>;
 export declare const localLinks: Map<number, Link>;
@@ -12,4 +12,5 @@ export declare const loadLocalMovies: (size: number) => void;
 export declare const loadLocalLinks: () => void;
 export declare const loadLocalTags: () => void;
 export declare const loadLocalRatings: () => void;
-export declare const seedToFirebase: (firebaseApp: firebase.firestore.Firestore, size: number) => void;
+export declare const seedToFirebase: (firebaseApp: Firestore | import("firebase").firestore.Firestore, size: number) => void;
+export declare const deleteFromFirebase: (firebaseApp: Firestore | import("firebase").firestore.Firestore) => void;

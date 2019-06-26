@@ -7,10 +7,11 @@
     "format": "prettier --write **/*.ts",
     "pretest": "tsc",
     "test": "jest",
-    "firestore_setup": "npm i -g firebase-tools && firebase login && firebase setup:emulators:firestore",
-    "firestore_logout": "firebase logout",
-    "firestore_start": "firebase serve --only firestore",
-    "seed_movies": "tsc && node dist/main.js"
+    "emulator_setup": "npm i -g firebase-tools && firebase login && firebase setup:emulators:firestore",
+    "emulator_logout": "firebase logout",
+    "emulator_start": "firebase serve --only firestore",
+    "seed_local": "tsc && node dist/seed_local.js",
+    "seed_cloud": "tsc && node dist/seed_cloud.js"
   },
   "author": "",
   "license": "ISC",
@@ -27,5 +28,9 @@
     "ts-jest": "^24.0.2",
     "ts-node": "^8.2.0",
     "typescript": "^3.5.1"
+  },
+  "dependencies": {
+    "@google-cloud/firestore": "^2.2.2",
+    "@grpc/grpc-js": "^0.4.3"
   }
 }
