@@ -41,7 +41,7 @@ export const actions: ActionTree<ServersState, RootState> = {
     { payload: { id, ...rest } }: AddNewServerAction
   ) {
     try {
-      const server: Server = addNewServer(rest);
+      const server: Server = await addNewServer(rest);
       console.log(`Server is ${server}`);
       context.commit<Mutation>({
         type: MutationTypes.AddNewServer,
@@ -62,7 +62,7 @@ export const actions: ActionTree<ServersState, RootState> = {
     { payload: server }: EditServerAction
   ) {
     try {
-      const updatedServer: Server = updateServer(server);
+      const updatedServer: Server = await updateServer(server);
       context.commit<Mutation>({
         type: MutationTypes.EditServer,
         payload: updatedServer
@@ -79,7 +79,7 @@ export const actions: ActionTree<ServersState, RootState> = {
   },
   async [ActionTypes.FetchServers](context) {
     try {
-      const servers: Array<Server> = fetchAllServers();
+      const servers: Array<Server> = await fetchAllServers();
       context.commit<Mutation>({
         type: MutationTypes.SetServers,
         payload: servers

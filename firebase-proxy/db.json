@@ -1,0 +1,16 @@
+{
+  "servers": [
+    {
+      "type": "emulated",
+      "name": "Local Emulator",
+      "projectId": "firebase-explorer-test",
+      "appId": "app-1561562662526-0.18933417107062556",
+      "color": "#701518",
+      "isEmulated": true,
+      "id": 1
+    }
+  ],
+  "config": {
+    "isThemeDark": false
+  }
+}

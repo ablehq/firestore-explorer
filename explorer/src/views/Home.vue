@@ -15,14 +15,14 @@
               <v-card-title primary-title>
                 <v-layout row wrap justify-space-between>
                   <v-flex>
-                    <span class="title" :style="{ color: server.color }">
-                      {{ server.name }}
-                    </span>
+                    <span class="title" :style="{ color: server.color }">{{
+                      server.name
+                    }}</span>
                   </v-flex>
                   <v-flex shrink>
-                    <v-icon :color="server.color">
-                      {{ server.type === "emulated" ? "adb" : "cloud" }}
-                    </v-icon>
+                    <v-icon :color="server.color">{{
+                      server.type === "emulated" ? "adb" : "cloud"
+                    }}</v-icon>
                   </v-flex>
                 </v-layout>
               </v-card-title>
@@ -81,9 +81,9 @@
 
     <v-dialog v-model="configDialog">
       <v-card>
-        <v-card-title class="headline">
-          {{ serverToBeShownConfig.name }}
-        </v-card-title>
+        <v-card-title class="headline">{{
+          serverToBeShownConfig.name
+        }}</v-card-title>
 
         <v-card-text v-if="configDialog">
           <code>{{ serverToBeShownConfig.config }}</code>
@@ -96,9 +96,9 @@
       </v-card>
     </v-dialog>
 
-    <v-snackbar v-model="snackbar" :timeout="3000" top vertical>{{
-      errorText
-    }}</v-snackbar>
+    <v-snackbar v-model="snackbar" :timeout="3000" top vertical>
+      {{ errorText }}
+    </v-snackbar>
   </v-container>
 </template>
 
@@ -119,6 +119,10 @@ export default class Home extends Vue {
   errorText: string = "";
 
   created() {
+    this.$store.dispatch<Action>({
+      type: ActionTypes.GetTheme,
+      payload: {}
+    });
     this.$store.dispatch<Action>({
       type: ActionTypes.FetchServers,
       payload: {}

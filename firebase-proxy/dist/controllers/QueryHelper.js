@@ -9,77 +9,90 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const FirebaseProxy_1 = require("../models/FirebaseProxy");
+const json_db_1 = require("../json-db");
 exports.handleQuery = ({ payload: { server, query } }) => __awaiter(this, void 0, void 0, function* () {
     let data = {};
-    switch (server.type) {
-        case "emulated":
-            const db = FirebaseProxy_1.generateFirestoreEmulatedInstance(server.projectId);
-            try {
-                const result = yield eval(query);
-                let datum = {};
-                let resultType = "";
-                let res = null;
-                switch (result.constructor.name) {
-                    case "DocumentSnapshot":
-                        resultType = "DocumentSnapshot";
-                        res = result;
-                        datum = {
-                            id: res.id,
-                            path: res.ref.path,
-                            data: res.data()
-                        };
-                        break;
-                    case "QueryDocumentSnapshot":
-                        resultType = "QueryDocumentSnapshot";
-                        res = result;
-                        datum = {
-                            id: res.id,
-                            path: res.ref.path,
-                            data: res.data()
-                        };
-                        break;
-                    case "QuerySnapshot":
-                        resultType = "QuerySnapshot";
-                        res = result;
-                        datum = res.docs.map(item => {
-                            return {
-                                id: item.id,
-                                path: item.ref.path,
-                                parent: item.ref.parent.path,
-                                data: item.data()
+    const localServer = json_db_1.db
+        .get("servers")
+        .find({ id: server })
+        .value();
+    if (localServer) {
+        const serverType = localServer.type;
+        const serverProjectId = localServer.projectId;
+        switch (serverType) {
+            case "emulated":
+                const db = FirebaseProxy_1.generateFirestoreEmulatedInstance(serverProjectId);
+                try {
+                    const result = yield eval(query);
+                    let datum = {};
+                    let resultType = "";
+                    let res = null;
+                    switch (result.constructor.name) {
+                        case "DocumentSnapshot":
+                            resultType = "DocumentSnapshot";
+                            res = result;
+                            datum = {
+                                id: res.id,
+                                path: res.ref.path,
+                                data: res.data()
                             };
-                        });
-                        break;
-                    case "Array":
-                        if (result && result.length > 0) {
-                            resultType = "CollectionArray";
-                            // check the first item and figure out the type
-                            if (result[0].constructor.name === "CollectionReference") {
-                                res = result;
-                                datum = res.map(item => {
-                                    return {
-                                        id: item.id,
-                                        path: item.path
-                                    };
-                                });
+                            break;
+                        case "QueryDocumentSnapshot":
+                            resultType = "QueryDocumentSnapshot";
+                            res = result;
+                            datum = {
+                                id: res.id,
+                                path: res.ref.path,
+                                data: res.data()
+                            };
+                            break;
+                        case "QuerySnapshot":
+                            resultType = "QuerySnapshot";
+                            res = result;
+                            datum = res.docs.map(item => {
+                                return {
+                                    id: item.id,
+                                    path: item.ref.path,
+                                    parent: item.ref.parent.path,
+                                    data: item.data()
+                                };
+                            });
+                            break;
+                        case "Array":
+                            if (result && result.length > 0) {
+                                resultType = "CollectionArray";
+                                // check the first item and figure out the type
+                                if (result[0].constructor.name === "CollectionReference") {
+                                    res = result;
+                                    datum = res.map(item => {
+                                        return {
+                                            id: item.id,
+                                            path: item.path
+                                        };
+                                    });
+                                }
                             }
-                        }
-                        break;
+                            break;
+                    }
+                    data["queryId"] = `${Date.now()}`;
+                    data["success"] = true;
+                    data["type"] = resultType;
+                    data["data"] = datum;
                 }
-                data["queryId"] = `${Date.now()}`;
-                data["success"] = true;
-                data["type"] = resultType;
-                data["data"] = datum;
-            }
-            catch (error) {
-                data["success"] = false;
-                data["error"] = `${error}`;
-            }
-            break;
-        case "cloud":
-            break;
-        default:
-            break;
+                catch (error) {
+                    data["success"] = false;
+                    data["error"] = `${error}`;
+                }
+                break;
+            case "cloud":
+                break;
+            default:
+                break;
+        }
+    }
+    else {
+        data["success"] = false;
+        data["error"] = `Server with id ${server} not found`;
     }
     return data;
 });

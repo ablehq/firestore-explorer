@@ -86,9 +86,9 @@
           </v-form>
         </v-flex>
       </v-layout>
-      <v-snackbar v-model="snackbar" :timeout="3000" top vertical>
-        {{ errorText }}
-      </v-snackbar>
+      <v-snackbar v-model="snackbar" :timeout="3000" top vertical>{{
+        errorText
+      }}</v-snackbar>
     </v-container>
   </v-container>
 </template>
@@ -104,7 +104,6 @@ import {
   GenerateCloudServer
 } from "../stores/servers/State";
 import { Prop } from "vue-property-decorator";
-import { Object } from "lodash";
 @Component({})
 export default class NewServer extends Vue {
   @Prop(String) readonly serverId!: string;

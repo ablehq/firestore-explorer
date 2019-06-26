@@ -6,9 +6,9 @@
       </v-btn>
       <v-toolbar-title :color="server.color">
         {{ formTitle }}
-        <v-icon :color="server.color">
-          {{ server.type === "emulated" ? "adb" : "cloud" }}
-        </v-icon>
+        <v-icon :color="server.color">{{
+          server.type === "emulated" ? "adb" : "cloud"
+        }}</v-icon>
       </v-toolbar-title>
     </v-toolbar>
     <v-flex>
@@ -29,9 +29,9 @@
     <v-flex>
       <v-breadcrumbs :items="breadcrumbs" divider=">">
         <template v-slot:item="props">
-          <v-chip label @click="breadcrumbClicked(props.item)">{{
-            props.item.text
-          }}</v-chip>
+          <v-chip label @click="breadcrumbClicked(props.item)">
+            {{ props.item.text }}
+          </v-chip>
         </template>
       </v-breadcrumbs>
     </v-flex>
@@ -104,7 +104,7 @@ export default class ExploreApp extends Vue {
   @Prop(String) readonly serverId!: string;
   server!: Server;
   isServerAvailable = false;
-  query: string = "";
+  query: string = "db.listCollections()";
   editorOptions = {
     minimap: {
       enabled: false
@@ -134,6 +134,7 @@ export default class ExploreApp extends Vue {
       if (foundServer) {
         this.server = foundServer;
         this.isServerAvailable = true;
+        this.executeQuery();
       }
     }
     if (!this.isServerAvailable) {
@@ -180,7 +181,7 @@ export default class ExploreApp extends Vue {
         data: {
           name: "query",
           payload: {
-            server: this.server,
+            server: this.server.id,
             query: this.query
           }
         }
@@ -197,7 +198,7 @@ export default class ExploreApp extends Vue {
           data: {
             name: "query",
             payload: {
-              server: this.server,
+              server: this.server.id,
               query: `db.doc('${docPath}').listCollections()`
             }
           }
@@ -220,7 +221,7 @@ export default class ExploreApp extends Vue {
         data: {
           name: "query",
           payload: {
-            server: this.server,
+            server: this.server.id,
             query: `db.doc('${item.path}').get()`
           }
         }
@@ -234,7 +235,7 @@ export default class ExploreApp extends Vue {
         data: {
           name: "query",
           payload: {
-            server: this.server,
+            server: this.server.id,
             query: `db.doc('${item.path}').listCollections()`
           }
         }

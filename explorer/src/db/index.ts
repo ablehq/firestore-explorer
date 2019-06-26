@@ -1,39 +1,30 @@
-import low from "lowdb";
-import LocalStorage from "lowdb/adapters/LocalStorage";
+import api from "../ApiServer";
 
-const adapter = new LocalStorage("db");
-const db: any = low(adapter);
-const lodashId = require("lodash-id");
-db._.mixin(lodashId);
-db.defaults({ servers: [], config: { isThemeDark: false } }).write();
-const addNewServer = (server: any): any => {
-  return db
-    .get("servers")
-    .insert(server)
-    .write();
+const addNewServer = async (server: any) => {
+  return api.post("/servers", server).then(resp => resp.data);
 };
-const updateServer = ({ id, ...rest }: any): any => {
-  return db
-    .get("servers")
-    .updateById(id, rest)
-    .write();
+const updateServer = async ({ id, ...rest }: any) => {
+  return api.put(`/servers/${id}`, rest).then(resp => resp.data);
 };
-const deleteServer = (id: string): any => {
-  return db
-    .get("servers")
-    .removeById(id)
-    .write();
+const deleteServer = async (id: string) => {
+  return api.delete(`/servers/${id}`);
 };
-const setDarkMode = (isThemeDark: boolean): any => {
-  return db.set("config.isThemeDark", isThemeDark).write();
+const setDarkMode = async (isThemeDark: boolean) => {
+  return api
+    .post("/config", {
+      isThemeDark
+    })
+    .then(resp => {
+      console.log(resp.data);
+      return resp.data;
+    });
 };
-const isThemeDark = (): boolean => {
-  return db.get("config.isThemeDark").value();
+const isThemeDark = async () => {
+  return api.get("/config").then(resp => resp.data.isThemeDark);
 };
 const fetchAllServers = (): any => {
-  return db.get("servers").value();
+  return api.get("/servers").then(resp => resp.data);
 };
-export default db;
 export {
   addNewServer,
   updateServer,
