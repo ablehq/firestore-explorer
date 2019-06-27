@@ -1,21 +1,20 @@
 export interface BaseServer {
+  readonly id: string;
   readonly type: "emulated" | "cloud";
-  readonly projectId: string;
-  readonly appId: string;
+  readonly name: string;
+  readonly color: string;
 }
 
 export interface EmulatedServer extends BaseServer {
   readonly type: "emulated";
   readonly isEmulated: boolean;
+  readonly projectId: string;
+  readonly appId: string;
 }
 
 export interface CloudServer extends BaseServer {
   readonly type: "cloud";
-  readonly apiKey: string;
-  readonly authDomain: string;
-  readonly databaseURL: string;
-  readonly storageBucket: string;
-  readonly messagingSenderId: string;
+  readonly config: object;
   readonly isCloud: boolean;
 }
 

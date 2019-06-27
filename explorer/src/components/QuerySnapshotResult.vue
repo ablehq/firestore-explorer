@@ -80,13 +80,18 @@ export default class QuerySnapshotResult extends Vue {
 
   selectedDocument: QueryResponseItem | null = null;
   selectedDocumentSubCollection: QueryResponseItem | null = null;
+
+  get isThemeDark(): boolean {
+    return this.$store.getters.isThemeDark;
+  }
+
   get results(): Array<QueryResponseItem> {
     return this.response.data;
   }
 
   getBackground(item: QueryResponseItem) {
     if (this.selectedDocument && this.selectedDocument.id === item.id) {
-      return ["light-blue", "lighten-5"];
+      return this.isThemeDark ? ["grey", "darken-2"] : ["grey", "lighten-2"];
     }
     return [];
   }

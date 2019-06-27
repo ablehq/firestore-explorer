@@ -19,75 +19,79 @@ exports.handleQuery = ({ payload: { server, query } }) => __awaiter(this, void 0
     if (localServer) {
         const serverType = localServer.type;
         const serverProjectId = localServer.projectId;
+        let db = null;
         switch (serverType) {
             case "emulated":
-                const db = FirebaseProxy_1.generateFirestoreEmulatedInstance(serverProjectId);
-                try {
-                    const result = yield eval(query);
-                    let datum = {};
-                    let resultType = "";
-                    let res = null;
-                    switch (result.constructor.name) {
-                        case "DocumentSnapshot":
-                            resultType = "DocumentSnapshot";
-                            res = result;
-                            datum = {
-                                id: res.id,
-                                path: res.ref.path,
-                                data: res.data()
-                            };
-                            break;
-                        case "QueryDocumentSnapshot":
-                            resultType = "QueryDocumentSnapshot";
-                            res = result;
-                            datum = {
-                                id: res.id,
-                                path: res.ref.path,
-                                data: res.data()
-                            };
-                            break;
-                        case "QuerySnapshot":
-                            resultType = "QuerySnapshot";
-                            res = result;
-                            datum = res.docs.map(item => {
-                                return {
-                                    id: item.id,
-                                    path: item.ref.path,
-                                    parent: item.ref.parent.path,
-                                    data: item.data()
-                                };
-                            });
-                            break;
-                        case "Array":
-                            if (result && result.length > 0) {
-                                resultType = "CollectionArray";
-                                // check the first item and figure out the type
-                                if (result[0].constructor.name === "CollectionReference") {
-                                    res = result;
-                                    datum = res.map(item => {
-                                        return {
-                                            id: item.id,
-                                            path: item.path
-                                        };
-                                    });
-                                }
-                            }
-                            break;
-                    }
-                    data["queryId"] = `${Date.now()}`;
-                    data["success"] = true;
-                    data["type"] = resultType;
-                    data["data"] = datum;
-                }
-                catch (error) {
-                    data["success"] = false;
-                    data["error"] = `${error}`;
-                }
+                db = FirebaseProxy_1.generateFirestoreEmulatedInstance(serverProjectId);
                 break;
             case "cloud":
+                db = FirebaseProxy_1.generateCloudEmulatedInstance(localServer);
                 break;
             default:
                 break;
+        }
+        if (db) {
+            try {
+                const result = yield safeEvalQuery(db, query);
+                let datum = {};
+                let resultType = "";
+                let res = null;
+                switch (result.constructor.name) {
+                    case "DocumentSnapshot":
+                        resultType = "DocumentSnapshot";
+                        res = result;
+                        datum = {
+                            id: res.id,
+                            path: res.ref.path,
+                            data: res.data(),
+                        };
+                        break;
+                    case "QueryDocumentSnapshot":
+                        resultType = "QueryDocumentSnapshot";
+                        res = result;
+                        datum = {
+                            id: res.id,
+                            path: res.ref.path,
+                            data: res.data(),
+                        };
+                        break;
+                    case "QuerySnapshot":
+                        resultType = "QuerySnapshot";
+                        res = result;
+                        datum = res.docs.map(item => {
+                            return {
+                                id: item.id,
+                                path: item.ref.path,
+                                parent: item.ref.parent.path,
+                                data: item.data(),
+                            };
+                        });
+                        break;
+                    case "Array":
+                        if (result && result.length > 0) {
+                            resultType = "CollectionArray";
+                            // check the first item and figure out the type
+                            if (result[0].constructor.name === "CollectionReference") {
+                                res = result;
+                                datum = res.map(item => {
+                                    return {
+                                        id: item.id,
+                                        path: item.path,
+                                    };
+                                });
+                            }
+                        }
+                        break;
+                }
+                data["queryId"] = `${Date.now()}`;
+                data["success"] = true;
+                data["type"] = resultType;
+                data["data"] = datum;
+            }
+            catch (error) {
+                data["success"] = false;
+                data["error"] = `${error}`;
+            }
         }
     }
     else {
@@ -95,5 +99,10 @@ exports.handleQuery = ({ payload: { server, query } }) => __awaiter(this, void 0
         data["error"] = `Server with id ${server} not found`;
     }
     return data;
+});
+const safeEvalQuery = (firestore, query) => __awaiter(this, void 0, void 0, function* () {
+    const db = firestore;
+    const result = yield eval(query);
+    return result;
 });
 //# sourceMappingURL=QueryHelper.js.map
