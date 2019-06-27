@@ -11,7 +11,7 @@ import {
   Firestore,
 } from "@google-cloud/firestore";
 import { db } from "../json-db";
-import { Server } from "../models/Server";
+import { Server, EmulatedServer, CloudServer } from "../models/Server";
 export const handleQuery = async ({ payload: { server, query } }: Query) => {
   let data: { [key: string]: any } = {};
   const localServer: Server | undefined = db
@@ -20,14 +20,14 @@ export const handleQuery = async ({ payload: { server, query } }: Query) => {
     .value();
   if (localServer) {
     const serverType = localServer.type;
-    const serverProjectId = localServer.projectId;
     let db = null;
     switch (serverType) {
       case "emulated":
+        const serverProjectId = (localServer as EmulatedServer).projectId;
         db = generateFirestoreEmulatedInstance(serverProjectId);
         break;
       case "cloud":
-        db = generateCloudEmulatedInstance(localServer);
+        db = generateCloudEmulatedInstance(localServer as CloudServer);
         break;
       default:
         break;

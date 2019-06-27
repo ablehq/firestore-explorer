@@ -18,10 +18,10 @@ exports.handleQuery = ({ payload: { server, query } }) => __awaiter(this, void 0
         .value();
     if (localServer) {
         const serverType = localServer.type;
-        const serverProjectId = localServer.projectId;
         let db = null;
         switch (serverType) {
             case "emulated":
+                const serverProjectId = localServer.projectId;
                 db = FirebaseProxy_1.generateFirestoreEmulatedInstance(serverProjectId);
                 break;
             case "cloud":
