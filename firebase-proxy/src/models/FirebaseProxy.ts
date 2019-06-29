@@ -11,8 +11,8 @@ export const generateFirestoreEmulatedInstance = (projectId: string) => {
     projectId,
     sslCreds: grpc.credentials.createInsecure(),
     customHeaders: {
-      Authorization: "Bearer owner",
-    },
+      Authorization: "Bearer owner"
+    }
   });
 };
 
@@ -24,6 +24,6 @@ export const generateCloudEmulatedInstance = (server: CloudServer) => {
     fs.writeFileSync(filePath, JSON.stringify(server.config));
   }
   return new Firestore({
-    keyFilename: filePath,
+    keyFilename: filePath
   });
 };

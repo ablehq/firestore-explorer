@@ -12,4 +12,6 @@ export declare const loadLocalMovies: () => void;
 export declare const loadLocalLinks: () => void;
 export declare const loadLocalTags: () => void;
 export declare const loadLocalRatings: () => void;
-export declare const seedToFirebase: (firebaseApp: firebase.firestore.Firestore) => void;
+export declare const seedToFirebase: (
+  firebaseApp: firebase.firestore.Firestore
+) => void;

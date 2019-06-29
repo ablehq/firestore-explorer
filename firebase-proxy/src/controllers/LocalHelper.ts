@@ -8,8 +8,8 @@ const firestore = new Firestore({
   projectId: "firebase-explorer-test",
   sslCreds: grpc.credentials.createInsecure(),
   customHeaders: {
-    Authorization: "Bearer owner",
-  },
+    Authorization: "Bearer owner"
+  }
 });
 
 export const handleLocalQuery = async (query: LocalQuery) => {
@@ -22,7 +22,7 @@ export const handleLocalQuery = async (query: LocalQuery) => {
   data["data"] = {
     id: result.id,
     path: result.ref.path,
-    data: result.data(),
+    data: result.data()
   };
   return data;
 };

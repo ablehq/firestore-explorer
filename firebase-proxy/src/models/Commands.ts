@@ -1,9 +1,9 @@
 import { Server } from "./Server";
 
-export const enum CommandNames {
+export enum CommandNames {
   QUERY = "query",
   LOCAL = "local",
-  LIST_ROOTS = "list_roots",
+  LIST_ROOTS = "list_roots"
 }
 
 export interface Query {
