@@ -11,7 +11,7 @@ export const handleQuery = async ({ payload: { server } }: ListRoots) => {
         const datum = rootCollectionRefs.map(collectionListRef => {
           return {
             id: collectionListRef.id,
-            path: collectionListRef.path,
+            path: collectionListRef.path
           };
         });
         data["success"] = true;

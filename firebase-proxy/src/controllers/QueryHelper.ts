@@ -1,14 +1,14 @@
 import { Query } from "../models/Commands";
 import {
   generateFirestoreEmulatedInstance,
-  generateCloudEmulatedInstance,
+  generateCloudEmulatedInstance
 } from "../models/FirebaseProxy";
 import {
   DocumentSnapshot,
   QueryDocumentSnapshot,
   QuerySnapshot,
   CollectionReference,
-  Firestore,
+  Firestore
 } from "@google-cloud/firestore";
 import { db } from "../json-db";
 import { Server, EmulatedServer, CloudServer } from "../models/Server";
@@ -50,7 +50,7 @@ export const handleQuery = async ({ payload: { server, query } }: Query) => {
             datum = {
               id: res.id,
               path: res.ref.path,
-              data: res.data(),
+              data: res.data()
             };
             break;
           case "QueryDocumentSnapshot":
@@ -59,7 +59,7 @@ export const handleQuery = async ({ payload: { server, query } }: Query) => {
             datum = {
               id: res.id,
               path: res.ref.path,
-              data: res.data(),
+              data: res.data()
             };
             break;
           case "QuerySnapshot":
@@ -70,7 +70,7 @@ export const handleQuery = async ({ payload: { server, query } }: Query) => {
                 id: item.id,
                 path: item.ref.path,
                 parent: item.ref.parent.path,
-                data: item.data(),
+                data: item.data()
               };
             });
             break;
@@ -83,7 +83,7 @@ export const handleQuery = async ({ payload: { server, query } }: Query) => {
                 datum = res.map(item => {
                   return {
                     id: item.id,
-                    path: item.path,
+                    path: item.path
                   };
                 });
               }

@@ -17,8 +17,8 @@ const firestore = new firestore_1.Firestore({
     projectId: "firebase-explorer-test",
     sslCreds: grpc.credentials.createInsecure(),
     customHeaders: {
-        Authorization: "Bearer owner",
-    },
+        Authorization: "Bearer owner"
+    }
 });
 exports.handleLocalQuery = (query) => __awaiter(this, void 0, void 0, function* () {
     let data = {};
@@ -30,7 +30,7 @@ exports.handleLocalQuery = (query) => __awaiter(this, void 0, void 0, function* 
     data["data"] = {
         id: result.id,
         path: result.ref.path,
-        data: result.data(),
+        data: result.data()
     };
     return data;
 });

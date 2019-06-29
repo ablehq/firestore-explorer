@@ -17,8 +17,8 @@ exports.generateFirestoreEmulatedInstance = (projectId) => {
         projectId,
         sslCreds: grpc.credentials.createInsecure(),
         customHeaders: {
-            Authorization: "Bearer owner",
-        },
+            Authorization: "Bearer owner"
+        }
     });
 };
 exports.generateCloudEmulatedInstance = (server) => {
@@ -29,7 +29,7 @@ exports.generateCloudEmulatedInstance = (server) => {
         fs.writeFileSync(filePath, JSON.stringify(server.config));
     }
     return new firestore_1.Firestore({
-        keyFilename: filePath,
+        keyFilename: filePath
     });
 };
 //# sourceMappingURL=FirebaseProxy.js.map

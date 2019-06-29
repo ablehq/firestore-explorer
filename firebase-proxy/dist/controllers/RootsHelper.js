@@ -19,7 +19,7 @@ exports.handleQuery = ({ payload: { server } }) => __awaiter(this, void 0, void 
                 const datum = rootCollectionRefs.map(collectionListRef => {
                     return {
                         id: collectionListRef.id,
-                        path: collectionListRef.path,
+                        path: collectionListRef.path
                     };
                 });
                 data["success"] = true;

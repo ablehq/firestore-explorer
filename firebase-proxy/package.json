@@ -4,7 +4,7 @@
   "description": "",
   "private": true,
   "scripts": {
-    "format": "prettier --write **/*.ts",
+    "format": "prettier --write src/**/*.ts",
     "pretest": "tsc",
     "test": "jest",
     "start": "yarn serve",
