@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "onetime_setup": "cd explorer && yarn && cd ../firebase-proxy && yarn && cp -rf data/sample.db.json data/db.json",
+    "onetime_setup": "cd explorer && yarn && cd ../firebase-proxy && yarn && cp -rf sample.db.json data/db.json",
     "serve": "concurrently -k -p \"[{name}]\" -n \"webapp,frproxy\" -c \"yellow.bold,cyan.bold,green.bold\" \"cd explorer && yarn serve\" \"cd firebase-proxy && yarn dev\"",
     "lint": "cd explorer && yarn lint && cd ../firebase-proxy && yarn format"
   },
