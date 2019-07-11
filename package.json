@@ -4,7 +4,7 @@
   "description": "Web based admin UI to explore cloud firestore",
   "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "cd firebase-proxy && yarn test",
     "onetime_setup": "cd explorer && yarn && cd ../firebase-proxy && yarn && cp -rf sample.db.json data/db.json",
     "serve": "concurrently -k -p \"[{name}]\" -n \"webapp,frproxy\" -c \"yellow.bold,cyan.bold,green.bold\" \"cd explorer && yarn serve\" \"cd firebase-proxy && yarn dev\"",
     "lint": "cd explorer && yarn lint && cd ../firebase-proxy && yarn format"
@@ -23,6 +23,11 @@
     "concurrently": "^4.1.0"
   },
   "devDependencies": {
-    "husky": "^2.7.0"
+    "husky": "^3.0.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn lint && yarn test"
+    }
   }
 }

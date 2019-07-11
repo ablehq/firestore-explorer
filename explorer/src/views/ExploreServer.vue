@@ -6,9 +6,9 @@
       </v-btn>
       <v-toolbar-title :color="server.color">
         {{ formTitle }}
-        <v-icon :color="server.color">{{
-          server.type === "emulated" ? "adb" : "cloud"
-        }}</v-icon>
+        <v-icon :color="server.color">
+          {{ server.type === "emulated" ? "adb" : "cloud" }}
+        </v-icon>
       </v-toolbar-title>
     </v-toolbar>
     <v-flex>
@@ -26,12 +26,12 @@
         <v-icon right>play_arrow</v-icon>
       </v-btn>
     </v-flex>
-    <v-flex>
+    <v-flex v-if="isResponseSuccess">
       <v-breadcrumbs :items="breadcrumbs" divider=">">
         <template v-slot:item="props">
-          <v-chip label @click="breadcrumbClicked(props.item)">
-            {{ props.item.text }}
-          </v-chip>
+          <v-chip label @click="breadcrumbClicked(props.item)">{{
+            props.item.text
+          }}</v-chip>
         </template>
       </v-breadcrumbs>
     </v-flex>
@@ -56,6 +56,9 @@
       :response="queryResponse"
       @subCollectionClicked="subCollectionClicked"
     />
+    <v-flex v-if="!isResponseSuccess">
+      <p class="red--text subheading ma-2">{{ responseError }}</p>
+    </v-flex>
   </v-container>
 </template>
 
@@ -109,7 +112,8 @@ export default class ExploreApp extends Vue {
     minimap: {
       enabled: false
     },
-    lineNumbers: true
+    lineNumbers: true,
+    contextmenu: false
   };
   editorLanguages = "javascript";
   responseLanguage = "json";
@@ -129,6 +133,13 @@ export default class ExploreApp extends Vue {
 
   created() {
     const servers = this.$store.getters.servers as Array<Server>;
+    this.queryResponse = {
+      success: false,
+      error: "",
+      type: "DocumentSnapshot",
+      queryId: "",
+      data: { id: "", path: "", data: {} }
+    };
     if (servers.length > 0) {
       const foundServer = servers.find(item => `${item.id}` === this.serverId);
       if (foundServer) {
@@ -148,6 +159,18 @@ export default class ExploreApp extends Vue {
 
   get editorTheme(): string {
     return this.$store.getters.isThemeDark ? "vs-dark" : "vs";
+  }
+
+  get responseError(): string {
+    return this.isResponseSuccess ? "" : this.queryResponse.error;
+  }
+
+  get isResponseSuccess(): boolean {
+    return (
+      this.isResponseAvailable &&
+      this.queryResponse &&
+      this.queryResponse.success
+    );
   }
 
   get isDocumentSnapshot(): boolean {
