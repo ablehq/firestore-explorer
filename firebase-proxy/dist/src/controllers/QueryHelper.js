@@ -50,7 +50,7 @@ exports.handleQuery = ({ payload: { server, query } }) => __awaiter(this, void 0
                         datum = {
                             id: res.id,
                             path: res.ref.path,
-                            data: res.data(),
+                            data: res.data()
                         };
                         break;
                     case "QueryDocumentSnapshot":
@@ -59,7 +59,7 @@ exports.handleQuery = ({ payload: { server, query } }) => __awaiter(this, void 0
                         datum = {
                             id: res.id,
                             path: res.ref.path,
-                            data: res.data(),
+                            data: res.data()
                         };
                         break;
                     case "QuerySnapshot":
@@ -70,7 +70,7 @@ exports.handleQuery = ({ payload: { server, query } }) => __awaiter(this, void 0
                                 id: item.id,
                                 path: item.ref.path,
                                 parent: item.ref.parent.path,
-                                data: item.data(),
+                                data: item.data()
                             };
                         });
                         break;
@@ -83,7 +83,7 @@ exports.handleQuery = ({ payload: { server, query } }) => __awaiter(this, void 0
                                 datum = res.map(item => {
                                     return {
                                         id: item.id,
-                                        path: item.path,
+                                        path: item.path
                                     };
                                 });
                             }

@@ -8,18 +8,26 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.commandsHandler = (req, res) => __awaiter(this, void 0, void 0, function* () {
+const Commands_1 = require("../models/Commands");
+const LocalHelper_1 = require("./LocalHelper");
+const QueryHelper_1 = require("./QueryHelper");
+const RootsHelper_1 = require("./RootsHelper");
+exports.handler = (req, res) => __awaiter(this, void 0, void 0, function* () {
     const body = req.body;
     let data = {};
     switch (body.name) {
-        case "local" /* LOCAL */:
-            data = {
-                hello: "world"
-            };
+        case Commands_1.CommandNames.QUERY:
+            data = yield QueryHelper_1.handleQuery(body);
+            break;
+        case Commands_1.CommandNames.LOCAL:
+            data = yield LocalHelper_1.handleLocalQuery(body);
+            break;
+        case Commands_1.CommandNames.LIST_ROOTS:
+            data = yield RootsHelper_1.handleQuery(body);
             break;
         default:
             break;
     }
     res.json(data);
 });
-//# sourceMappingURL=local.js.map
+//# sourceMappingURL=CommandsController.js.map

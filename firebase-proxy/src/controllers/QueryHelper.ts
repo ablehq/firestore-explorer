@@ -1,4 +1,5 @@
 import { Query } from "../models/Commands";
+import { parse } from "../parser";
 import {
   generateFirestoreEmulatedInstance,
   generateCloudEmulatedInstance
@@ -14,6 +15,7 @@ import { db } from "../json-db";
 import { Server, EmulatedServer, CloudServer } from "../models/Server";
 export const handleQuery = async ({ payload: { server, query } }: Query) => {
   let data: { [key: string]: any } = {};
+
   const localServer: Server | undefined = db
     .get("servers")
     .find({ id: server })
@@ -34,6 +36,13 @@ export const handleQuery = async ({ payload: { server, query } }: Query) => {
     }
     if (db) {
       try {
+        const parsingResult = parse(query);
+        if (!parsingResult.succeeded) {
+          data["success"] = false;
+          data["error"] = `${parsingResult.error}`;
+          return data;
+        }
+
         const result = await safeEvalQuery(db, query);
         let datum = {};
         let resultType = "";

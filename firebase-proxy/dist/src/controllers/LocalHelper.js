@@ -23,15 +23,15 @@ const firestore = new firestore_1.Firestore({
 exports.handleLocalQuery = (query) => __awaiter(this, void 0, void 0, function* () {
     let data = {};
     const db = firestore;
-    const rootCollectionRefs = yield db.listCollections();
-    const datum = rootCollectionRefs.map(collectionListRef => {
-        return {
-            id: collectionListRef.id,
-            path: collectionListRef.path
-        };
-    });
+    const result = yield db.doc("movies/60756").get();
+    const collections = yield result.ref.listCollections();
+    console.log(collections);
     data["success"] = true;
-    data["data"] = datum;
+    data["data"] = {
+        id: result.id,
+        path: result.ref.path,
+        data: result.data()
+    };
     return data;
 });
-//# sourceMappingURL=local_helper.js.map
+//# sourceMappingURL=LocalHelper.js.map
