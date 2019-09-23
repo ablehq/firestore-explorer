@@ -15,7 +15,7 @@ exports.parse = (code) => {
                 try {
                     fsm.send({
                         type: node.name,
-                        node: node,
+                        node: node
                     });
                 }
                 catch (error) { }
@@ -29,30 +29,30 @@ exports.parse = (code) => {
                         try {
                             fsm.send({
                                 type: identifier.name,
-                                node: node,
+                                node: node
                             });
                         }
                         catch (error) { }
                     }
                 }
-            },
+            }
         });
         const isFSMInFinalState = fsm.state.nextEvents.length === 0;
         if (isFSMInFinalState) {
             return {
                 succeeded: true,
-                error: "",
+                error: ""
             };
         }
         return {
             succeeded: false,
-            error: `Expected ${fsm.state.nextEvents.join(" or ")} at ${fsm.state.context.parsedUntilIndex}`,
+            error: `Expected ${fsm.state.nextEvents.join(" or ")} at ${fsm.state.context.parsedUntilIndex}`
         };
     }
     catch (error) {
         return {
             succeeded: false,
-            error: error.message,
+            error: error.message
         };
     }
 };

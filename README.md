@@ -1,8 +1,8 @@
-## Firestore Explorer
+# Firestore Explorer
 
 Web based admin UI to explore cloud firestore
 
-## Guide
+## Usage
 
 Clone the repository. Make sure you have [nvm](https://github.com/nvm-sh/nvm) installed.
 
@@ -16,6 +16,37 @@ Follow these steps when you want to bring up the service after shutting it down 
 
 - `nvm use`
 - `yarn serve`
+
+## Query console
+
+Query console supports arbitrary queries to Firestore. It expects javascript based method calls just like the web or admin sdk. There are some limitation to the queries
+
+- Single valid javascript statement
+- Query should always start with `db`
+- Query should always end with call that will return a promise of `QueryDocumentSnapshot` or `QueryDocumentSnapshot` or `QuerySnapshot` or `Array<CollectionReference>`
+
+### Examples
+
+```javascript
+db.listCollections();
+```
+
+```javascript
+db.collection("movies")
+  .limit(10)
+  .get();
+```
+
+```javascript
+db.collection("movies")
+  .where("title", "==", "LBJ (2017)")
+  .limit(10)
+  .get();
+```
+
+```javascript
+db.doc("movies/179813").get();
+```
 
 ## Development Details
 
@@ -42,7 +73,7 @@ A vuejs based web application. Uses vuex for state management needs and vuetify 
 
 This is simple utility module to setup data in firestore emulator and cloud firestore.
 
-- Use `yarn setup_emulator` to install firebase tools along with emulator
+- Use `yarn emulator_setup` to install firebase tools along with emulator
 - Use `yarn emulator_start` to start the firestore emulator
 - Use `yarn seed_local` to seed data present in `data` directory into emulator firestore
 - Use `yarn seed_cloud` to seed data into cloud firestore. To work with cloud firestore you will admin sdk credentials file. You can get one by navigating to service accounts -> generate new key. Create a file called `FirebaseAdminConfig.json` in root directory of this module and paste the contents of the downloaded file into the json file.

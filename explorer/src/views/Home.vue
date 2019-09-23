@@ -46,11 +46,11 @@
                 >
                   <v-icon>code</v-icon>
                 </v-btn>
-                <v-btn flat small icon @click.stop="showQueryConsole(server)">
+                <v-btn flat small icon @click.stop="exploreServer(server)">
                   <v-icon>video_label</v-icon>
                 </v-btn>
                 <v-spacer></v-spacer>
-                <v-btn flat small @click.stop="exploreServer(server)">
+                <v-btn flat small @click.stop="showQueryConsole(server)">
                   Explore
                   <v-icon right>arrow_right_alt</v-icon>
                 </v-btn>

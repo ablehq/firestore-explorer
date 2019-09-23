@@ -40,16 +40,6 @@
               <v-text-field
                 required
                 :disabled="loading"
-                v-model="appId"
-                :rules="generalStringRules('App Id')"
-                label="App Id"
-                outline
-              ></v-text-field>
-            </v-flex>
-            <v-flex v-if="!isCloud">
-              <v-text-field
-                required
-                :disabled="loading"
                 v-model="projectId"
                 :rules="generalStringRules('Project Id')"
                 label="Project Id"
@@ -86,9 +76,9 @@
           </v-form>
         </v-flex>
       </v-layout>
-      <v-snackbar v-model="snackbar" :timeout="3000" top vertical>{{
-        errorText
-      }}</v-snackbar>
+      <v-snackbar v-model="snackbar" :timeout="3000" top vertical>
+        {{ errorText }}
+      </v-snackbar>
     </v-container>
   </v-container>
 </template>
