@@ -1,10 +1,28 @@
 # Firestore Explorer
 
-Web based admin UI to explore cloud firestore
+Web based read only admin UI to explore cloud firestore and emulator.
+
+## Motivation
+
+There are a couple of issues we noticed during our day to day development with Firestore projects.
+
+- Exploring documents in your collections can soon become tedious process as you have to click through and navigate the whole hierarchy, its a painful experience that eats into your productivity.
+  
+- There is no way to explore Firestore emulator.
+
+What we need is a quick way to query the data of interest, just like there is an sql console for a relational database, we would need a query tool for Firestore as well.
+
+## Before you begin
+
+- To connect to Cloud Firestore, this tool would require Firebase project's security credentials for admin access. To mitigate any risk of accidental writes to Firestore, this tool ensures that the queries passed to it are read only calls. It does so by applying a layer of javascript parsing that filters only read queries.
+  
+- This tool is like any other Firestore client, hence reads made through this tool will be charged as per Firestore plan.
 
 ## Usage
 
-Clone the repository. Make sure you have [nvm](https://github.com/nvm-sh/nvm) installed.
+> Note: Ensure you have [nvm](https://github.com/nvm-sh/nvm) and [firebase-tools](https://github.com/firebase/firebase-tools) installed. 
+
+Clone the repository
 
 Follow these steps when using for the first time.
 

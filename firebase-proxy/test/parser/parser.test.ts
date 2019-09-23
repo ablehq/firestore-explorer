@@ -26,7 +26,7 @@ describe("Collection Queries", () => {
     const resp = parse(collectionWithoutLimit);
     expect(resp.succeeded).toBe(false);
     expect(resp.error).toBe(
-      "Expected limit or orderBy or select or where at 22",
+      "Expected limit or orderBy or select or where at 22"
     );
     done();
   });

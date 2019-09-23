@@ -1,10 +1,11 @@
-import { fsmGenerator } from "../../src/parser";
 import { interpret, Interpreter } from "xstate";
+import { fsmGenerator } from "../../src/parser";
 import {
-  ParserStateSchema,
-  ParsingContext,
   ParsedEvent,
+  ParserStateSchema,
+  ParsingContext
 } from "../../src/parser/fsm";
+
 describe("'none' transitions", () => {
   test(`it should be in none state initially`, () => {
     let fsm = interpret(fsmGenerator()).start();
@@ -15,7 +16,7 @@ describe("'none' transitions", () => {
   test(`it should transition to db state on dbEvent`, () => {
     let fsm = interpret(fsmGenerator()).start();
     const nextState = fsm.send({
-      type: "db",
+      type: "db"
     });
     expect(nextState.value).toBe("db");
   });
@@ -34,7 +35,7 @@ describe("'db' transitions", () => {
     expect(fsm.state.nextEvents).toEqual([
       "listCollections",
       "collection",
-      "doc",
+      "doc"
     ]);
   });
   test("it should transition to listCollections", async done => {
@@ -50,7 +51,7 @@ describe("'db' transitions", () => {
       "limit",
       "orderBy",
       "select",
-      "where",
+      "where"
     ]);
   });
   test("it should transition to doc", () => {
@@ -58,7 +59,7 @@ describe("'db' transitions", () => {
     expect(nextState.nextEvents).toEqual([
       "collection",
       "listCollections",
-      "get",
+      "get"
     ]);
   });
 });
@@ -194,7 +195,7 @@ describe("'doc' transitions", () => {
       "limit",
       "orderBy",
       "select",
-      "where",
+      "where"
     ]);
   });
   test("it should transition to listCollections", () => {

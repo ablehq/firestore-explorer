@@ -8,8 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const parser_1 = require("../../src/parser");
 const xstate_1 = require("xstate");
+const parser_1 = require("../../src/parser");
 describe("'none' transitions", () => {
     test(`it should be in none state initially`, () => {
         let fsm = xstate_1.interpret(parser_1.fsmGenerator()).start();
@@ -20,7 +20,7 @@ describe("'none' transitions", () => {
     test(`it should transition to db state on dbEvent`, () => {
         let fsm = xstate_1.interpret(parser_1.fsmGenerator()).start();
         const nextState = fsm.send({
-            type: "db",
+            type: "db"
         });
         expect(nextState.value).toBe("db");
     });
@@ -38,7 +38,7 @@ describe("'db' transitions", () => {
         expect(fsm.state.nextEvents).toEqual([
             "listCollections",
             "collection",
-            "doc",
+            "doc"
         ]);
     });
     test("it should transition to listCollections", (done) => __awaiter(this, void 0, void 0, function* () {
@@ -54,7 +54,7 @@ describe("'db' transitions", () => {
             "limit",
             "orderBy",
             "select",
-            "where",
+            "where"
         ]);
     });
     test("it should transition to doc", () => {
@@ -62,7 +62,7 @@ describe("'db' transitions", () => {
         expect(nextState.nextEvents).toEqual([
             "collection",
             "listCollections",
-            "get",
+            "get"
         ]);
     });
 });
@@ -191,7 +191,7 @@ describe("'doc' transitions", () => {
             "limit",
             "orderBy",
             "select",
-            "where",
+            "where"
         ]);
     });
     test("it should transition to listCollections", () => {
