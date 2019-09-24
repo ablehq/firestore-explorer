@@ -3,7 +3,8 @@
 Web based read only admin UI to explore cloud firestore and emulator.
 
 ![GitHub package.json version](https://img.shields.io/github/package-json/v/ablehq/firestore-explorer)
-[![GitHub license](https://img.shields.io/github/license/ablehq/firestore-explorer)](https://github.com/ablehq/firestore-explorer/blob/master/LICENSE.md)![GitHub language count](https://img.shields.io/github/languages/count/ablehq/firestore-explorer)
+[![GitHub license](https://img.shields.io/github/license/ablehq/firestore-explorer)](https://github.com/ablehq/firestore-explorer/blob/master/LICENSE.md)
+![GitHub language count](https://img.shields.io/github/languages/count/ablehq/firestore-explorer)
 ![GitHub top language](https://img.shields.io/github/languages/top/ablehq/firestore-explorer)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 
