@@ -9,16 +9,21 @@
     "serve": "concurrently -k -p \"[{name}]\" -n \"webapp,frproxy\" -c \"yellow.bold,cyan.bold,green.bold\" \"cd explorer && yarn serve\" \"cd firebase-proxy && yarn dev\"",
     "lint": "cd explorer && yarn lint && cd ../firebase-proxy && yarn format"
   },
+  "keywords": [
+    "firebase",
+    "firestore",
+    "admin"
+  ],
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@gitlab.com/madhu314/firestore-explorer.git"
+    "url": "https://github.com/ablehq/firestore-explorer"
   },
-  "author": "",
+  "author": "Madhusudhan Sambojhu <madhu@able.do> (https://github.com/madhu314)",
   "license": "ISC",
   "bugs": {
-    "url": "https://gitlab.com/madhu314/firestore-explorer/issues"
+    "url": "https://github.com/ablehq/firestore-explorer/issues"
   },
-  "homepage": "https://gitlab.com/madhu314/firestore-explorer#readme",
+  "homepage": "https://github.com/ablehq/firestore-explorer#readme",
   "dependencies": {
     "concurrently": "^4.1.0"
   },
