@@ -1,11 +1,11 @@
 {
   "name": "firestore-explorer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Web based admin UI to explore cloud firestore",
   "private": true,
   "scripts": {
     "test": "cd firebase-proxy && yarn test",
-    "onetime_setup": "cd explorer && yarn && cd ../firebase-proxy && yarn && cp -rf sample.db.json data/db.json",
+    "onetime_setup": "cd explorer && yarn && cd ../firebase-proxy && mkdir -p data && yarn && cp -rf sample.db.json data/db.json",
     "serve": "concurrently -k -p \"[{name}]\" -n \"webapp,frproxy\" -c \"yellow.bold,cyan.bold,green.bold\" \"cd explorer && yarn serve\" \"cd firebase-proxy && yarn dev\"",
     "lint": "cd explorer && yarn lint && cd ../firebase-proxy && yarn format"
   },

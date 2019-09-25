@@ -15,7 +15,7 @@ _Web based read only admin UI to explore cloud firestore and emulator._
 There are a couple of issues we noticed during our day to day development with Firestore projects.
 
 - Exploring documents in your collections can soon become tedious process as you have to click through and navigate the whole hierarchy, its a painful experience that eats into your productivity.
-  
+
 - There is no way to explore Firestore emulator.
 
 What we need is a quick way to query the data of interest, just like there is an sql console for a relational database, we would need a query tool for Firestore as well.
@@ -23,25 +23,30 @@ What we need is a quick way to query the data of interest, just like there is an
 ## Before you begin
 
 - To connect to Cloud Firestore, this tool would require Firebase project's security credentials for admin access. To mitigate any risk of accidental writes to Firestore, this tool ensures that the queries passed to it are read only calls. It does so by applying a layer of javascript parsing that filters only read queries.
-  
+
 - This tool is like any other Firestore client, hence reads made through this tool will be charged as per Firestore plan.
 
 ## Usage
 
-> Note: Ensure you have [nvm](https://github.com/nvm-sh/nvm) and [firebase-tools](https://github.com/firebase/firebase-tools) installed. 
+![Usage](./screenshots/usage.gif)
+
+> Note: Ensure you have [nvm](https://github.com/nvm-sh/nvm) and [firebase-tools](https://github.com/firebase/firebase-tools) installed.
 
 Clone the repository
 
 Follow these steps when using for the first time.
 
 - `nvm use`
+- `yarn`
 - `yarn onetime_setup`
 - `yarn serve`
 
-Follow these steps when you want to bring up the service after shutting it down with ctrl+c
+Subsequent usage
 
 - `nvm use`
 - `yarn serve`
+
+You will see that [Firebase Proxy](#firebase-proxy) is running at port 7000 and [Explorer](#explorer) running at port 8000
 
 ## Query console
 
@@ -74,6 +79,10 @@ db.collection("movies")
 db.doc("movies/179813").get();
 ```
 
+```javascript
+db.doc("movies/179813/ratings/179813-462-1536467407").get();
+```
+
 ## Development Details
 
 The project is divided into three modules. All these three modules can be developed independent of each other. Typescript is used across all these modules.
@@ -99,7 +108,10 @@ A vuejs based web application. Uses vuex for state management needs and vuetify 
 
 This is simple utility module to setup data in firestore emulator and cloud firestore.
 
+- Use `yarn` to install project dependencies.
 - Use `yarn emulator_setup` to install firebase tools along with emulator
 - Use `yarn emulator_start` to start the firestore emulator
 - Use `yarn seed_local` to seed data present in `data` directory into emulator firestore
 - Use `yarn seed_cloud` to seed data into cloud firestore. To work with cloud firestore you will admin sdk credentials file. You can get one by navigating to service accounts -> generate new key. Create a file called `FirebaseAdminConfig.json` in root directory of this module and paste the contents of the downloaded file into the json file.
+
+> Note: Firestore emulator requires Java runtime, so ensure your machine Java installed.
