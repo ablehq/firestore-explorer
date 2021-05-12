@@ -31,6 +31,6 @@
   },
   "dependencies": {
     "@google-cloud/firestore": "^2.2.2",
-    "@grpc/grpc-js": "^0.4.3"
+    "@grpc/grpc-js": "^1.1.8"
   }
 }
