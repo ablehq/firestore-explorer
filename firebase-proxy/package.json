@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "@google-cloud/firestore": "^2.2.1",
-    "@grpc/grpc-js": "^0.4.3",
+    "@grpc/grpc-js": "^1.1.8",
     "@types/acorn": "^4.0.5",
     "acorn": "^6.2.0",
     "acorn-walk": "^6.2.0",
