@@ -42,7 +42,7 @@
     "acorn": "^6.2.0",
     "acorn-walk": "^6.2.0",
     "cors": "^2.8.5",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "json-server": "^0.15.0",
     "xstate": "^4.6.4"
   }
